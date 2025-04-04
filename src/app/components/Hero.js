@@ -7,16 +7,16 @@ const Hero = () => {
   const [showInfo, setShowInfo] = useState(false);
 
   return (
-    <div className="relative h-[60vh] w-full">
+    <div className="relative h-[40vh] w-full">
       <Image
-        src="/images/restaurant-hero.jpg"
+        src="https://dynamic-media-cdn.tripadvisor.com/media/photo-o/2b/58/c4/7c/el-equipo-de-9-patrias.jpg"
         alt="Restaurante"
         fill
         className="object-cover brightness-75"
         priority
       />
-      <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
-        <h1 className="text-5xl font-bold mb-4">Nuestro Restaurante</h1>
+      <div className="absolute inset-0 flex flex-col text-white">
+        <h1 className="text-2xl font-bold p-2 uppercase">Fire Station Cafeteria</h1>
         <button
           onClick={() => setShowInfo(!showInfo)}
           className="bg-white/20 backdrop-blur-sm px-6 py-2 rounded-full text-white border border-white hover:bg-white/30 transition-all"
