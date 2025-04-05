@@ -43,7 +43,7 @@ function InfoModal({ isOpen, onClose }) {
 function ImageModal({ isOpen, onClose, imageUrl, productName }) {
   return (
     <Dialog open={isOpen} onClose={onClose} className="relative z-50">
-      <div className="fixed inset-0 bg-black/70" aria-hidden="true" />
+      <div className="fixed inset-0 bg-black/80" aria-hidden="true" />
       <div className="fixed inset-0 flex items-center justify-center p-4">
         <Dialog.Panel className="relative bg-white rounded-lg overflow-hidden max-w-3xl w-full">
           <div className="relative h-[60vh] w-full">
@@ -84,7 +84,13 @@ export default function HomePage({ categories, products }) {
     <main className="min-h-screen">
       {/* Hero Section con imagen de fondo */}
       <section className="relative h-[40vh] bg-black">
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-black/30" />
+        <Image
+          src="/images/hero_firestation.jpg"
+          alt="Interior del restaurante"
+          fill
+          className="object-cover opacity-80"
+          priority
+        />
         <div className="absolute inset-0 flex flex-col justify-center items-center text-white">
           <h1 className="text-2xl font-bold mb-8">FIRESTATION</h1>
           <button
@@ -147,14 +153,15 @@ export default function HomePage({ categories, products }) {
                 </div>
                 <button
                   onClick={() => setSelectedImage(product)}
-                  className="relative w-24 h-24 flex-shrink-0 transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 rounded-md overflow-hidden"
+                  className="relative w-24 h-24 flex-shrink-0 overflow-hidden rounded-md transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
                 >
                   <Image
                     src={product.imageUrl}
                     alt={product.name}
                     fill
-                    className="object-cover rounded-md"
+                    className="object-cover"
                   />
+                  <div className="absolute inset-0 bg-black/0 hover:bg-black/10 transition-colors" />
                 </button>
               </div>
             ))}
