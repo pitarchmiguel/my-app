@@ -84,13 +84,7 @@ export default function HomePage({ categories, products }) {
     <main className="min-h-screen">
       {/* Hero Section con imagen de fondo */}
       <section className="relative h-[40vh] bg-black">
-        <Image
-          src="/images/hero_firestation.jpg"
-          alt="Interior del restaurante"
-          fill
-          className="object-cover opacity-80"
-          priority
-        />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-black/30" />
         <div className="absolute inset-0 flex flex-col justify-center items-center text-white">
           <h1 className="text-2xl font-bold mb-8">FIRESTATION</h1>
           <button
