@@ -97,20 +97,65 @@ export default function HomePage({ categories, products }) {
             priority
           />
         </div>
-        
-        {/* Botón de información en esquina inferior derecha */}
-        <div className="absolute bottom-4 right-4">
-          <button
-            onClick={() => setIsInfoModalOpen(true)}
-          >
-            <span className="text-3xl">ℹ️</span>
-          </button>
-        </div>
+      </section>
+
+      {/* Título FIRESTATION */}
+      <section className="max-w-4xl mx-auto px-8 pt-8 pb-2">
+        <h1 className="text-2xl font-black text-gray-900 tracking-wider">
+          FIRESTATION
+        </h1>
+      </section>
+
+      {/* Sección de información */}
+      <section className="max-w-4xl mx-auto px-4 py-6">
+        <button
+          onClick={() => setIsInfoModalOpen(true)}
+          className="w-full bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow p-4"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2}
+                  stroke="currentColor"
+                  className="w-5 h-5 text-gray-600"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"
+                  />
+                </svg>
+              </div>
+              <div className="flex flex-col items-start">
+                <span className="text-xl font-bold text-gray-900">Información</span>
+                <span className="text-gray-600 text-sm">Dirección, Teléfono, Horarios</span>
+              </div>
+            </div>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+              stroke="currentColor"
+              className="w-6 h-6 text-gray-400"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M8.25 4.5l7.5 7.5-7.5 7.5"
+              />
+            </svg>
+          </div>
+        </button>
       </section>
 
       {/* Categorías y sus productos */}
       <section className="max-w-4xl mx-auto px-4 py-8">
-        <div className="space-y-8">
+        <div className="space-y-4">
           {categories.map((category) => {
             const categoryProducts = products.filter(product => product.category.id === category.id);
             const isSelected = selectedCategory === category.id;
@@ -135,7 +180,7 @@ export default function HomePage({ categories, products }) {
 
                 {/* Productos de la categoría */}
                 {isSelected && categoryProducts.length > 0 && (
-                  <div className="pl-4 space-y-4">
+                  <div className=" space-y-4">
                     {categoryProducts.map((product) => (
                       <div
                         key={product.id}
