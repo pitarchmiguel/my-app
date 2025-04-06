@@ -1,29 +1,38 @@
 import HomePage from '@/components/HomePage';
-import { PrismaClient } from '@prisma/client';
+import prisma from '@/lib/prisma';
 
-const prisma = new PrismaClient();
+async function getData() {
+  try {
+    const [categories, products] = await Promise.all([
+      prisma.category.findMany({
+        include: {
+          products: true,
+        },
+      }),
+      prisma.product.findMany({
+        include: {
+          category: true,
+        },
+      }),
+    ]);
 
-async function getCategories() {
-  const categories = await prisma.category.findMany({
-    include: {
-      products: true,
-    },
-  });
-  return categories;
+    return {
+      categories,
+      products,
+    };
+  } catch (error) {
+    console.error('Error fetching data:', error);
+    return {
+      categories: [],
+      products: [],
+    };
+  }
 }
 
-async function getProducts() {
-  const products = await prisma.product.findMany({
-    include: {
-      category: true,
-    },
-  });
-  return products;
-}
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export default async function Page() {
-  const categories = await getCategories();
-  const products = await getProducts();
-
-  return <HomePage categories={categories} products={products} />;
+  const data = await getData();
+  return <HomePage {...data} />;
 }

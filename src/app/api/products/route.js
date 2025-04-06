@@ -3,6 +3,8 @@ import { PrismaClient } from '@prisma/client';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../auth/[...nextauth]/route';
 
+export const dynamic = 'force-dynamic';
+
 const prisma = new PrismaClient();
 
 export async function GET() {
@@ -10,6 +12,9 @@ export async function GET() {
     const products = await prisma.product.findMany({
       include: {
         category: true,
+      },
+      where: {
+        inStock: true,
       },
     });
 
