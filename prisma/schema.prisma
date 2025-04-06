@@ -20,6 +20,13 @@ model User {
   role     String @default("admin")
 }
 
+model Category {
+  id       String    @id @default(cuid())
+  name     String
+  emoji    String
+  products Product[]
+}
+
 model Product {
   id          String   @id @default(cuid())
   name        String
@@ -29,13 +36,6 @@ model Product {
   inStock     Boolean  @default(true)
   category    Category @relation(fields: [categoryId], references: [id])
   categoryId  String
-}
-
-model Category {
-  id       String    @id @default(cuid())
-  name     String
-  emoji    String
-  products Product[]
 }
 
 enum Role {

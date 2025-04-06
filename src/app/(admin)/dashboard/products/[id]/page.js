@@ -60,12 +60,15 @@ export default function ProductForm({ params }) {
       // Primero subimos la imagen si hay una nueva
       let imageUrl = formData.imageUrl;
       if (imageFile) {
-        const formData = new FormData();
-        formData.append('file', imageFile);
+        const imageFormData = new FormData();
+        imageFormData.append('file', imageFile);
         const uploadResponse = await fetch('/api/upload', {
           method: 'POST',
-          body: formData,
+          body: imageFormData,
         });
+        if (!uploadResponse.ok) {
+          throw new Error('Error al subir la imagen');
+        }
         const uploadData = await uploadResponse.json();
         imageUrl = uploadData.url;
       }
@@ -86,11 +89,14 @@ export default function ProductForm({ params }) {
         }),
       });
 
-      if (response.ok) {
-        router.push('/dashboard/products');
+      if (!response.ok) {
+        throw new Error('Error al guardar el producto');
       }
+
+      router.push('/dashboard/products');
     } catch (error) {
       console.error('Error al guardar el producto:', error);
+      alert('Error al guardar el producto: ' + error.message);
     }
   };
 
