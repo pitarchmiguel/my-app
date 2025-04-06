@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Dialog } from '@headlessui/react';
 
@@ -129,10 +129,38 @@ function ImageModal({ isOpen, onClose, imageUrl, productName, product }) {
   );
 }
 
-export default function HomePage({ categories, products }) {
+export default function HomePage({ categories, products, error }) {
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
+
+  useEffect(() => {
+    if (error) {
+      console.error('Error en los datos:', error);
+    }
+  }, [error]);
+
+  // Verificación más detallada de los datos
+  useEffect(() => {
+    console.log('Categorías recibidas:', categories);
+    console.log('Productos recibidos:', products);
+  }, [categories, products]);
+
+  if (!categories || !Array.isArray(categories) || categories.length === 0) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-semibold mb-4">
+            {error ? 'Error al cargar las categorías' : 'Cargando categorías...'}
+          </h2>
+          {error && <p className="text-red-500">{error}</p>}
+        </div>
+      </div>
+    );
+  }
+
+  // Asegurarse de que products es un array
+  const safeProducts = Array.isArray(products) ? products : [];
 
   return (
     <main className="min-h-screen">
@@ -215,7 +243,9 @@ export default function HomePage({ categories, products }) {
       <section className="max-w-4xl mx-auto px-4 py-8">
         <div className="space-y-4">
           {categories.map((category) => {
-            const categoryProducts = products.filter(product => product.category.id === category.id);
+            const categoryProducts = safeProducts.filter(
+              product => product.category && product.category.id === category.id
+            );
             const isSelected = selectedCategory === category.id;
 
             return (
@@ -237,41 +267,42 @@ export default function HomePage({ categories, products }) {
                 </button>
 
                 {/* Productos de la categoría */}
-                {isSelected && categoryProducts.length > 0 && (
-                  <div className=" space-y-4">
-                    {categoryProducts.map((product) => (
-                      <div
-                        key={product.id}
-                        className="flex items-center justify-between space-x-4 bg-white p-4 rounded-lg shadow-sm"
-                      >
-                        <div className="flex-grow">
-                          <h3 className="text-lg font-semibold">{product.name}</h3>
-                          <p className="text-sm text-gray-600 mb-2">{product.description}</p>
-                          <div className="flex items-center justify-between">
-                            <span className="text-lg font-bold">{product.price.toFixed(2)}€</span>
-                          </div>
-                        </div>
-                        <button
-                          onClick={() => setSelectedImage(product)}
-                          className="relative w-20 h-20 flex-shrink-0 overflow-hidden rounded-md transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                {isSelected && (
+                  <div className="space-y-4">
+                    {categoryProducts.length > 0 ? (
+                      categoryProducts.map((product) => (
+                        <div
+                          key={product.id}
+                          className="flex items-center justify-between space-x-4 bg-white p-4 rounded-lg shadow-sm"
                         >
-                          <Image
-                            src={product.imageUrl}
-                            alt={product.name}
-                            fill
-                            className="object-cover"
-                          />
-                          <div className="absolute inset-0 bg-black/0 hover:bg-black/10 transition-colors" />
-                        </button>
+                          <div className="flex-grow">
+                            <h3 className="text-lg font-semibold">{product.name}</h3>
+                            <p className="text-sm text-gray-600 mb-2">{product.description}</p>
+                            <div className="flex items-center justify-between">
+                              <span className="text-lg font-bold">{product.price.toFixed(2)}€</span>
+                            </div>
+                          </div>
+                          {product.imageUrl && (
+                            <button
+                              onClick={() => setSelectedImage(product)}
+                              className="relative w-20 h-20 flex-shrink-0 overflow-hidden rounded-md transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                            >
+                              <Image
+                                src={product.imageUrl}
+                                alt={product.name}
+                                fill
+                                className="object-cover"
+                              />
+                              <div className="absolute inset-0 bg-black/0 hover:bg-black/10 transition-colors" />
+                            </button>
+                          )}
+                        </div>
+                      ))
+                    ) : (
+                      <div className="pl-4 py-4 text-gray-500 italic">
+                        No hay productos disponibles en esta categoría
                       </div>
-                    ))}
-                  </div>
-                )}
-                
-                {/* Mensaje cuando no hay productos */}
-                {isSelected && categoryProducts.length === 0 && (
-                  <div className="pl-4 py-4 text-gray-500 italic">
-                    No hay productos disponibles en esta categoría
+                    )}
                   </div>
                 )}
               </div>
