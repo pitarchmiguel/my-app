@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { writeFile } from 'fs/promises';
+import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../auth/[...nextauth]/route';
@@ -30,13 +30,27 @@ export async function POST(request) {
     const filename = `${timestamp}-${originalName}`;
 
     // Asegurarse de que el directorio existe
-    const publicDir = join(process.cwd(), 'public', 'uploads');
-    await writeFile(join(publicDir, filename), buffer);
+    const publicDir = join(process.cwd(), 'public');
+    const uploadsDir = join(publicDir, 'uploads');
+    
+    try {
+      await mkdir(uploadsDir, { recursive: true });
+    } catch (error) {
+      if (error.code !== 'EEXIST') {
+        throw error;
+      }
+    }
+
+    // Guardar el archivo
+    await writeFile(join(uploadsDir, filename), buffer);
 
     // Devolver la URL relativa
     return NextResponse.json({ url: `/uploads/${filename}` });
   } catch (error) {
     console.error('Error al subir archivo:', error);
-    return NextResponse.json({ error: 'Error al subir archivo' }, { status: 500 });
+    return NextResponse.json({ 
+      error: 'Error al subir archivo', 
+      details: error.message 
+    }, { status: 500 });
   }
 } 

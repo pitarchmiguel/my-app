@@ -66,10 +66,13 @@ export default function ProductForm({ params }) {
           method: 'POST',
           body: imageFormData,
         });
-        if (!uploadResponse.ok) {
-          throw new Error('Error al subir la imagen');
-        }
+        
         const uploadData = await uploadResponse.json();
+        
+        if (!uploadResponse.ok) {
+          throw new Error(`Error al subir la imagen: ${uploadData.details || uploadData.error}`);
+        }
+        
         imageUrl = uploadData.url;
       }
 
@@ -89,14 +92,16 @@ export default function ProductForm({ params }) {
         }),
       });
 
+      const responseData = await response.json();
+      
       if (!response.ok) {
-        throw new Error('Error al guardar el producto');
+        throw new Error(`Error al guardar el producto: ${responseData.error}`);
       }
 
       router.push('/dashboard/products');
     } catch (error) {
       console.error('Error al guardar el producto:', error);
-      alert('Error al guardar el producto: ' + error.message);
+      alert(error.message || 'Error al guardar el producto');
     }
   };
 
