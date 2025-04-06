@@ -62,39 +62,46 @@ export default function ProductForm({ params }) {
       if (imageFile) {
         const imageFormData = new FormData();
         imageFormData.append('file', imageFile);
-        const uploadResponse = await fetch('/api/upload', {
-          method: 'POST',
-          body: imageFormData,
-        });
         
-        const uploadData = await uploadResponse.json();
-        
-        if (!uploadResponse.ok) {
-          throw new Error(`Error al subir la imagen: ${uploadData.details || uploadData.error}`);
+        try {
+          const uploadResponse = await fetch('/api/upload', {
+            method: 'POST',
+            body: imageFormData,
+          });
+          
+          const uploadData = await uploadResponse.json();
+          
+          if (!uploadResponse.ok) {
+            throw new Error(`Error al subir la imagen: ${uploadData.details || uploadData.error}`);
+          }
+          
+          imageUrl = uploadData.url;
+        } catch (uploadError) {
+          console.error('Error en la subida de imagen:', uploadError);
+          throw new Error('Error al subir la imagen. Por favor, inténtalo de nuevo.');
         }
-        
-        imageUrl = uploadData.url;
       }
 
       // Luego creamos/actualizamos el producto
       const url = isNew ? '/api/products' : `/api/products/${id}`;
       const method = isNew ? 'POST' : 'PUT';
       
+      const productData = {
+        ...formData,
+        price: parseFloat(formData.price),
+        imageUrl,
+      };
+
       const response = await fetch(url, {
         method,
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          ...formData,
-          price: parseFloat(formData.price),
-          imageUrl,
-        }),
+        body: JSON.stringify(productData),
       });
 
-      const responseData = await response.json();
-      
       if (!response.ok) {
+        const responseData = await response.json();
         throw new Error(`Error al guardar el producto: ${responseData.error}`);
       }
 

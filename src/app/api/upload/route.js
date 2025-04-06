@@ -11,14 +11,26 @@ export async function POST(request) {
     const session = await getServerSession(authOptions);
 
     if (!session) {
-      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+      return new NextResponse(
+        JSON.stringify({ error: 'No autorizado' }), 
+        { 
+          status: 401,
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
     }
 
     const data = await request.formData();
     const file = data.get('file');
 
     if (!file) {
-      return NextResponse.json({ error: 'No se proporcionó ningún archivo' }, { status: 400 });
+      return new NextResponse(
+        JSON.stringify({ error: 'No se proporcionó ningún archivo' }), 
+        { 
+          status: 400,
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
     }
 
     const bytes = await file.arrayBuffer();
@@ -45,12 +57,24 @@ export async function POST(request) {
     await writeFile(join(uploadsDir, filename), buffer);
 
     // Devolver la URL relativa
-    return NextResponse.json({ url: `/uploads/${filename}` });
+    return new NextResponse(
+      JSON.stringify({ url: `/uploads/${filename}` }), 
+      { 
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      }
+    );
   } catch (error) {
     console.error('Error al subir archivo:', error);
-    return NextResponse.json({ 
-      error: 'Error al subir archivo', 
-      details: error.message 
-    }, { status: 500 });
+    return new NextResponse(
+      JSON.stringify({ 
+        error: 'Error al subir archivo', 
+        details: error.message 
+      }), 
+      { 
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      }
+    );
   }
 } 
