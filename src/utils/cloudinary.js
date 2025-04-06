@@ -8,24 +8,15 @@ cloudinary.config({
 
 export async function uploadImage(file) {
   try {
-    const result = await new Promise((resolve, reject) => {
-      const uploadStream = cloudinary.uploader.upload_stream(
-        {
-          folder: 'firestation',
-        },
-        (error, result) => {
-          if (error) reject(error);
-          else resolve(result);
-        }
-      );
+    // Convertir el archivo a base64
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+    const base64 = buffer.toString('base64');
+    const base64File = `data:${file.type};base64,${base64}`;
 
-      // Convertir el buffer a un stream y enviarlo a Cloudinary
-      const buffer = Buffer.from(file.buffer);
-      const Readable = require('stream').Readable;
-      const stream = new Readable();
-      stream.push(buffer);
-      stream.push(null);
-      stream.pipe(uploadStream);
+    // Subir directamente usando el método upload
+    const result = await cloudinary.uploader.upload(base64File, {
+      folder: 'firestation',
     });
 
     return result.secure_url;
