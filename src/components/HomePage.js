@@ -76,10 +76,6 @@ export default function HomePage({ categories, products }) {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
 
-  const filteredProducts = selectedCategory
-    ? products.filter(product => product.category.id === selectedCategory)
-    : [];
-
   return (
     <main className="min-h-screen">
       {/* Hero Section con imagen de fondo */}
@@ -112,70 +108,81 @@ export default function HomePage({ categories, products }) {
         </div>
       </section>
 
-      {/* Categorías como botones */}
+      {/* Categorías y sus productos */}
       <section className="max-w-4xl mx-auto px-4 py-8">
-        <div className="grid gap-4">
-          {categories.map((category) => (
-            <button
-              key={category.id}
-              onClick={() => setSelectedCategory(
-                selectedCategory === category.id ? null : category.id
-              )}
-              className={`w-full text-left p-3 rounded-lg border-2 transition-all ${
-                selectedCategory === category.id
-                  ? 'border-gray-900 bg-gray-50'
-                  : 'border-gray-200 hover:border-gray-400'
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <span className="text-lg uppercase font-bold">{category.name}</span>
-                <span className="text-2xl">{category.emoji}</span>
+        <div className="space-y-8">
+          {categories.map((category) => {
+            const categoryProducts = products.filter(product => product.category.id === category.id);
+            const isSelected = selectedCategory === category.id;
+
+            return (
+              <div key={category.id} className="space-y-4">
+                <button
+                  onClick={() => setSelectedCategory(
+                    selectedCategory === category.id ? null : category.id
+                  )}
+                  className={`w-full text-left p-3 rounded-lg border-2 transition-all ${
+                    isSelected
+                      ? 'border-gray-900 bg-gray-50'
+                      : 'border-gray-200 hover:border-gray-400'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-lg uppercase font-bold">{category.name}</span>
+                    <span className="text-2xl">{category.emoji}</span>
+                  </div>
+                </button>
+
+                {/* Productos de la categoría */}
+                {isSelected && categoryProducts.length > 0 && (
+                  <div className="pl-4 space-y-4">
+                    {categoryProducts.map((product) => (
+                      <div
+                        key={product.id}
+                        className="flex items-center justify-between space-x-4 bg-white p-4 rounded-lg shadow-sm"
+                      >
+                        <div className="flex-grow">
+                          <h3 className="text-lg font-semibold">{product.name}</h3>
+                          <p className="text-sm text-gray-600 mb-2">{product.description}</p>
+                          <div className="flex items-center justify-between">
+                            <span className="text-xl font-bold">${product.price.toFixed(2)}</span>
+                            <span className={`text-sm ${
+                              product.inStock
+                                ? 'text-green-600'
+                                : 'text-red-600'
+                            }`}>
+                              {product.inStock ? 'Disponible' : 'Agotado'}
+                            </span>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => setSelectedImage(product)}
+                          className="relative w-24 h-24 flex-shrink-0 overflow-hidden rounded-md transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                        >
+                          <Image
+                            src={product.imageUrl}
+                            alt={product.name}
+                            fill
+                            className="object-cover"
+                          />
+                          <div className="absolute inset-0 bg-black/0 hover:bg-black/10 transition-colors" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                
+                {/* Mensaje cuando no hay productos */}
+                {isSelected && categoryProducts.length === 0 && (
+                  <div className="pl-4 py-4 text-gray-500 italic">
+                    No hay productos disponibles en esta categoría
+                  </div>
+                )}
               </div>
-            </button>
-          ))}
+            );
+          })}
         </div>
       </section>
-
-      {/* Productos filtrados por categoría */}
-      {selectedCategory && (
-        <section className="max-w-4xl mx-auto px-4">
-          <div className="grid gap-6">
-            {filteredProducts.map((product) => (
-              <div
-                key={product.id}
-                className="flex items-center justify-between space-x-4 bg-white p-4 rounded-lg shadow-sm"
-              >
-                <div className="flex-grow">
-                  <h3 className="text-lg font-semibold">{product.name}</h3>
-                  <p className="text-sm text-gray-600 mb-2">{product.description}</p>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xl font-bold">${product.price.toFixed(2)}</span>
-                    <span className={`text-sm ${
-                      product.inStock
-                        ? 'text-green-600'
-                        : 'text-red-600'
-                    }`}>
-                      {product.inStock ? 'Disponible' : 'Agotado'}
-                    </span>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setSelectedImage(product)}
-                  className="relative w-24 h-24 flex-shrink-0 overflow-hidden rounded-md transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-                >
-                  <Image
-                    src={product.imageUrl}
-                    alt={product.name}
-                    fill
-                    className="object-cover"
-                  />
-                  <div className="absolute inset-0 bg-black/0 hover:bg-black/10 transition-colors" />
-                </button>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
 
       {/* Modal de Información */}
       <InfoModal
