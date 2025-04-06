@@ -34,7 +34,6 @@ model Product {
   price       Float
   imageUrl    String
   inStock     Boolean  @default(true)
-  allergens   String?
   category    Category @relation(fields: [categoryId], references: [id])
   categoryId  String
 }

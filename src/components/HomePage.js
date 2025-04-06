@@ -105,13 +105,6 @@ function ImageModal({ isOpen, onClose, imageUrl, productName, product }) {
               </div>
               
               <p className="text-gray-600 text-lg leading-relaxed">{product.description}</p>
-              
-              {product.allergens && (
-                <div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">Alérgenos</h3>
-                  <p className="text-gray-600">{product.allergens}</p>
-                </div>
-              )}
             </div>
           </div>
 
