@@ -83,7 +83,7 @@ export default function HomePage({ categories, products }) {
   return (
     <main className="min-h-screen">
       {/* Hero Section con imagen de fondo */}
-      <section className="relative h-[40vh] bg-black">
+      <section className="relative h-[30vh] bg-black">
         <Image
           src="/images/hero_firestation.jpg"
           alt="Interior del restaurante"
@@ -91,15 +91,23 @@ export default function HomePage({ categories, products }) {
           className="object-cover opacity-80"
           priority
         />
-        <div className="absolute inset-0 flex flex-col justify-center items-center text-white">
-          <h1 className="text-2xl font-bold mb-8">FIRESTATION</h1>
+        {/* Logo en esquina superior derecha */}
+        <div className="absolute top-4 right-4 w-16 h-16">
+          <Image
+            src="/images/logo_firestation.svg"
+            alt="Logo Fire Station"
+            fill
+            className="object-contain"
+            priority
+          />
+        </div>
+        
+        {/* Botón de información en esquina inferior derecha */}
+        <div className="absolute bottom-4 right-4">
           <button
             onClick={() => setIsInfoModalOpen(true)}
-            className="flex items-center space-x-2 bg-white/10 backdrop-blur-sm px-6 py-3 rounded-full hover:bg-white/20 transition-colors"
           >
-            <span className="text-xl">ℹ️</span>
-            <span className="text-lg">Información</span>
-            <span className="text-xl">→</span>
+            <span className="text-3xl">ℹ️</span>
           </button>
         </div>
       </section>
@@ -113,14 +121,14 @@ export default function HomePage({ categories, products }) {
               onClick={() => setSelectedCategory(
                 selectedCategory === category.id ? null : category.id
               )}
-              className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
+              className={`w-full text-left p-3 rounded-lg border-2 transition-all ${
                 selectedCategory === category.id
                   ? 'border-gray-900 bg-gray-50'
                   : 'border-gray-200 hover:border-gray-400'
               }`}
             >
               <div className="flex items-center justify-between">
-                <span className="text-xl font-semibold">{category.name}</span>
+                <span className="text-lg uppercase font-bold">{category.name}</span>
                 <span className="text-2xl">{category.emoji}</span>
               </div>
             </button>
@@ -130,7 +138,7 @@ export default function HomePage({ categories, products }) {
 
       {/* Productos filtrados por categoría */}
       {selectedCategory && (
-        <section className="max-w-4xl mx-auto px-4 py-8">
+        <section className="max-w-4xl mx-auto px-4">
           <div className="grid gap-6">
             {filteredProducts.map((product) => (
               <div
