@@ -81,31 +81,48 @@ function InfoModal({ isOpen, onClose }) {
 }
 
 // Componente Modal de Imagen
-function ImageModal({ isOpen, onClose, imageUrl, productName }) {
+function ImageModal({ isOpen, onClose, imageUrl, productName, product }) {
   return (
     <Dialog open={isOpen} onClose={onClose} className="relative z-50">
-      <div className="fixed inset-0 bg-black/80" aria-hidden="true" />
+      <div className="fixed inset-0 bg-white" aria-hidden="true" />
       <div className="fixed inset-0 flex items-center justify-center p-4">
-        <Dialog.Panel className="relative bg-white rounded-lg overflow-hidden max-w-3xl w-full">
-          <div className="relative h-[60vh] w-full">
+        <Dialog.Panel className="bg-white rounded-3xl overflow-hidden max-w-2xl w-full shadow-xl">
+          <div className="relative aspect-[4/3] w-full">
             <Image
               src={imageUrl}
               alt={productName}
               fill
-              className="object-contain"
+              className="object-cover"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 75vw, 50vw"
             />
           </div>
-          <div className="absolute top-2 right-2">
-            <button
-              onClick={onClose}
-              className="bg-white/10 backdrop-blur-sm text-white rounded-full p-2 hover:bg-white/20 transition-colors"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
+          
+          <div className="p-8">
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-3xl font-bold text-gray-900 mb-2">{productName}</h2>
+                <p className="text-2xl font-bold text-gray-900">{product.price.toFixed(2)} €</p>
+              </div>
+              
+              <p className="text-gray-600 text-lg leading-relaxed">{product.description}</p>
+              
+              {product.allergens && (
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">Alérgenos</h3>
+                  <p className="text-gray-600">{product.allergens}</p>
+                </div>
+              )}
+            </div>
           </div>
+
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 bg-black/10 backdrop-blur-sm rounded-full p-2 hover:bg-black/20 transition-colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         </Dialog.Panel>
       </div>
     </Dialog>
@@ -276,6 +293,7 @@ export default function HomePage({ categories, products }) {
           onClose={() => setSelectedImage(null)}
           imageUrl={selectedImage.imageUrl}
           productName={selectedImage.name}
+          product={selectedImage}
         />
       )}
     </main>
