@@ -57,6 +57,48 @@ export default function CategoriesPage() {
     }
   };
 
+  const handleEdit = async (id, data) => {
+    try {
+      const response = await fetch(`/api/categories/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al actualizar la categoría');
+      }
+
+      await response.json();
+      // La actualización del estado se maneja en el componente DraggableCategories
+    } catch (error) {
+      console.error('Error:', error);
+      setError(error.message);
+      throw error;
+    }
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      const response = await fetch(`/api/categories/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Error al eliminar la categoría');
+      }
+
+      // La actualización del estado se maneja en el componente DraggableCategories
+    } catch (error) {
+      console.error('Error:', error);
+      setError(error.message);
+      throw error;
+    }
+  };
+
   const handleReorder = async (newOrder) => {
     try {
       const response = await fetch('/api/categories/reorder', {
@@ -71,7 +113,6 @@ export default function CategoriesPage() {
         throw new Error('Error al actualizar el orden');
       }
 
-      // Actualizar las categorías localmente
       setCategories(prev => {
         const updated = [...prev];
         newOrder.forEach(({ id, order }) => {
@@ -147,6 +188,8 @@ export default function CategoriesPage() {
           <DraggableCategories 
             categories={categories}
             onReorder={handleReorder}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
           />
         )}
       </div>

@@ -2,8 +2,9 @@ import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../../auth/[...nextauth]/route';
+import prisma from '@/lib/prisma';
 
-const prisma = new PrismaClient();
+const prismaClient = new PrismaClient();
 
 export async function GET(request, { params }) {
   try {
@@ -13,7 +14,7 @@ export async function GET(request, { params }) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
-    const category = await prisma.category.findUnique({
+    const category = await prismaClient.category.findUnique({
       where: {
         id: params.id,
       },
@@ -38,29 +39,22 @@ export async function GET(request, { params }) {
 
 export async function PUT(request, { params }) {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session) {
-      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
-    }
-
+    const { id } = params;
     const data = await request.json();
 
-    const category = await prisma.category.update({
-      where: {
-        id: params.id,
-      },
+    const updatedCategory = await prismaClient.category.update({
+      where: { id },
       data: {
         name: data.name,
         emoji: data.emoji,
       },
     });
 
-    return NextResponse.json(category);
+    return NextResponse.json(updatedCategory);
   } catch (error) {
     console.error('Error al actualizar categoría:', error);
     return NextResponse.json(
-      { error: 'Error al actualizar categoría' },
+      { error: 'Error al actualizar la categoría' },
       { status: 500 }
     );
   }
@@ -68,23 +62,30 @@ export async function PUT(request, { params }) {
 
 export async function DELETE(request, { params }) {
   try {
-    const session = await getServerSession(authOptions);
+    const { id } = params;
 
-    if (!session) {
-      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
-    }
-
-    await prisma.category.delete({
-      where: {
-        id: params.id,
-      },
+    // Primero verificamos si la categoría tiene productos
+    const category = await prismaClient.category.findUnique({
+      where: { id },
+      include: { products: true },
     });
 
-    return NextResponse.json({ message: 'Categoría eliminada' });
+    if (category.products.length > 0) {
+      return NextResponse.json(
+        { error: 'No se puede eliminar una categoría que tiene productos' },
+        { status: 400 }
+      );
+    }
+
+    await prismaClient.category.delete({
+      where: { id },
+    });
+
+    return NextResponse.json({ message: 'Categoría eliminada correctamente' });
   } catch (error) {
     console.error('Error al eliminar categoría:', error);
     return NextResponse.json(
-      { error: 'Error al eliminar categoría' },
+      { error: 'Error al eliminar la categoría' },
       { status: 500 }
     );
   }

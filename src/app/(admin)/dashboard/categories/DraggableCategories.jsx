@@ -1,3 +1,5 @@
+'use client';
+
 import { useState } from 'react';
 import {
   DndContext,
@@ -15,8 +17,9 @@ import {
 } from '@dnd-kit/sortable';
 import { SortableItem } from './SortableItem';
 
-export default function DraggableCategories({ categories, onReorder }) {
+export default function DraggableCategories({ categories, onReorder, onEdit, onDelete }) {
   const [items, setItems] = useState(categories);
+  const [editingCategory, setEditingCategory] = useState(null);
   
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -45,6 +48,47 @@ export default function DraggableCategories({ categories, onReorder }) {
     }
   };
 
+  const handleEdit = (category) => {
+    setEditingCategory({
+      ...category,
+      newName: category.name,
+      newEmoji: category.emoji
+    });
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingCategory) return;
+
+    try {
+      await onEdit(editingCategory.id, {
+        name: editingCategory.newName,
+        emoji: editingCategory.newEmoji
+      });
+
+      setItems(items.map(item => 
+        item.id === editingCategory.id 
+          ? { ...item, name: editingCategory.newName, emoji: editingCategory.newEmoji }
+          : item
+      ));
+      
+      setEditingCategory(null);
+    } catch (error) {
+      console.error('Error al editar:', error);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm('¿Estás seguro de que quieres eliminar esta categoría?')) {
+      try {
+        await onDelete(id);
+        setItems(items.filter(item => item.id !== id));
+      } catch (error) {
+        console.error('Error al eliminar:', error);
+        alert(error.message);
+      }
+    }
+  };
+
   return (
     <DndContext
       sensors={sensors}
@@ -58,14 +102,69 @@ export default function DraggableCategories({ categories, onReorder }) {
         <div className="space-y-2">
           {items.map((category) => (
             <SortableItem key={category.id} id={category.id}>
-              <div className="flex items-center justify-between p-4 bg-white rounded-lg shadow cursor-move hover:bg-gray-50">
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center justify-center w-8 h-8 bg-gray-100 rounded-full">
-                    ≡
+              {editingCategory?.id === category.id ? (
+                <div className="flex items-center justify-between p-4 bg-white rounded-lg shadow">
+                  <div className="flex items-center gap-3 flex-1">
+                    <input
+                      type="text"
+                      value={editingCategory.newEmoji}
+                      onChange={(e) => setEditingCategory({
+                        ...editingCategory,
+                        newEmoji: e.target.value
+                      })}
+                      className="w-16 p-2 border rounded"
+                      placeholder="Emoji"
+                    />
+                    <input
+                      type="text"
+                      value={editingCategory.newName}
+                      onChange={(e) => setEditingCategory({
+                        ...editingCategory,
+                        newName: e.target.value
+                      })}
+                      className="flex-1 p-2 border rounded"
+                      placeholder="Nombre de la categoría"
+                    />
                   </div>
-                  <span className="text-sm font-medium">{category.name}</span>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleSaveEdit}
+                      className="px-3 py-1 text-sm text-white bg-green-500 rounded hover:bg-green-600"
+                    >
+                      Guardar
+                    </button>
+                    <button
+                      onClick={() => setEditingCategory(null)}
+                      className="px-3 py-1 text-sm text-white bg-gray-500 rounded hover:bg-gray-600"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="flex items-center justify-between p-4 bg-white rounded-lg shadow hover:bg-gray-50">
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-center w-8 h-8 bg-gray-100 rounded-full cursor-move">
+                      {category.emoji}
+                    </div>
+                    <span className="text-sm font-medium">{category.name}</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleEdit(category)}
+                      className="px-3 py-1 text-sm text-white bg-blue-500 rounded hover:bg-blue-600"
+                    >
+                      Editar
+                    </button>
+                    <button
+                      onClick={() => handleDelete(category.id)}
+                      className="px-3 py-1 text-sm text-white bg-red-500 rounded hover:bg-red-600"
+                    >
+                      Eliminar
+                    </button>
+                  </div>
+                </div>
+              )}
             </SortableItem>
           ))}
         </div>
