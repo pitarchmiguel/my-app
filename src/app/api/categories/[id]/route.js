@@ -1,10 +1,7 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../../auth/[...nextauth]/route';
 import prisma from '@/lib/prisma';
-
-const prismaClient = new PrismaClient();
 
 export async function GET(request, { params }) {
   try {
@@ -14,7 +11,7 @@ export async function GET(request, { params }) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
-    const category = await prismaClient.category.findUnique({
+    const category = await prisma.category.findUnique({
       where: {
         id: params.id,
       },
@@ -39,6 +36,12 @@ export async function GET(request, { params }) {
 
 export async function PUT(request, { params }) {
   try {
+    const session = await getServerSession(authOptions);
+
+    if (!session) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+    }
+
     const { id } = params;
     const data = await request.json();
 
@@ -62,6 +65,12 @@ export async function PUT(request, { params }) {
 
 export async function DELETE(request, { params }) {
   try {
+    const session = await getServerSession(authOptions);
+
+    if (!session) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+    }
+
     const { id } = params;
 
     // Primero verificamos si la categoría tiene productos

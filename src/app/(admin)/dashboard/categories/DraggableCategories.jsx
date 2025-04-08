@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   DndContext,
   closestCenter,
@@ -16,18 +16,25 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { SortableItem } from './SortableItem';
-
-// Iconos de Heroicons (asegúrate de que tienes @heroicons/react instalado)
-import { PencilIcon, TrashIcon, CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { PencilIcon, TrashIcon, CheckIcon, XMarkIcon, Bars3Icon } from '@heroicons/react/24/outline';
 
 export default function DraggableCategories({ categories, onReorder, onEdit, onDelete }) {
-  const [items, setItems] = useState(categories);
+  const [items, setItems] = useState([]);
   const [editingCategory, setEditingCategory] = useState(null);
   const [error, setError] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  
+
+  // Actualizar items cuando cambien las categorías
+  useEffect(() => {
+    setItems(categories);
+  }, [categories]);
+
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5, // Requiere un movimiento de 5px para activar el drag
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
@@ -56,7 +63,7 @@ export default function DraggableCategories({ categories, onReorder, onEdit, onD
     if (isProcessing) return;
     setError(null);
     setEditingCategory({
-      ...category,
+      id: category.id,
       newName: category.name,
       newEmoji: category.emoji
     });
@@ -64,6 +71,7 @@ export default function DraggableCategories({ categories, onReorder, onEdit, onD
 
   const handleSaveEdit = async () => {
     if (!editingCategory || isProcessing) return;
+    
     setError(null);
     setIsProcessing(true);
 
@@ -72,13 +80,6 @@ export default function DraggableCategories({ categories, onReorder, onEdit, onD
         name: editingCategory.newName,
         emoji: editingCategory.newEmoji
       });
-
-      setItems(items.map(item => 
-        item.id === editingCategory.id 
-          ? { ...item, name: editingCategory.newName, emoji: editingCategory.newEmoji }
-          : item
-      ));
-      
       setEditingCategory(null);
     } catch (error) {
       setError(error.message || 'Error al editar la categoría');
@@ -99,7 +100,6 @@ export default function DraggableCategories({ categories, onReorder, onEdit, onD
     
     try {
       await onDelete(id);
-      setItems(items.filter(item => item.id !== id));
     } catch (error) {
       setError(error.message || 'Error al eliminar la categoría');
     } finally {
@@ -139,6 +139,7 @@ export default function DraggableCategories({ categories, onReorder, onEdit, onD
                         })}
                         className="w-16 p-2 border rounded focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                         placeholder="Emoji"
+                        autoFocus
                       />
                       <input
                         type="text"
@@ -175,7 +176,10 @@ export default function DraggableCategories({ categories, onReorder, onEdit, onD
                 ) : (
                   <div className="flex items-center justify-between p-4 bg-white rounded-lg shadow hover:bg-gray-50">
                     <div className="flex items-center gap-3">
-                      <div className="flex items-center justify-center w-8 h-8 bg-gray-100 rounded-full cursor-move">
+                      <div className="flex items-center justify-center w-8 h-8 bg-gray-100 rounded-full">
+                        <Bars3Icon className="w-5 h-5 text-gray-500 cursor-move" />
+                      </div>
+                      <div className="flex items-center justify-center w-8 h-8 bg-gray-100 rounded-full">
                         {category.emoji}
                       </div>
                       <span className="text-sm font-medium">{category.name}</span>

@@ -17,10 +17,16 @@ export default function CategoriesPage() {
     try {
       setLoading(true);
       const response = await fetch('/api/categories');
+      
       if (!response.ok) {
         throw new Error('Error al cargar las categorías');
       }
+      
       const data = await response.json();
+      if (!Array.isArray(data)) {
+        throw new Error('Formato de datos inválido');
+      }
+      
       setCategories(data.sort((a, b) => a.order - b.order));
     } catch (error) {
       console.error('Error:', error);
@@ -49,7 +55,7 @@ export default function CategoriesPage() {
       }
 
       const createdCategory = await response.json();
-      setCategories([...categories, createdCategory]);
+      setCategories(prev => [...prev, createdCategory]);
       setNewCategory({ name: '', emoji: '' });
     } catch (error) {
       console.error('Error:', error);
@@ -68,11 +74,15 @@ export default function CategoriesPage() {
       });
 
       if (!response.ok) {
-        throw new Error('Error al actualizar la categoría');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Error al actualizar la categoría');
       }
 
-      await response.json();
-      // La actualización del estado se maneja en el componente DraggableCategories
+      const updatedCategory = await response.json();
+      setCategories(prev => prev.map(cat => 
+        cat.id === id ? { ...cat, ...data } : cat
+      ));
+      return updatedCategory;
     } catch (error) {
       console.error('Error:', error);
       setError(error.message);
@@ -87,11 +97,12 @@ export default function CategoriesPage() {
       });
 
       if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Error al eliminar la categoría');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Error al eliminar la categoría');
       }
 
-      // La actualización del estado se maneja en el componente DraggableCategories
+      setCategories(prev => prev.filter(cat => cat.id !== id));
+      return { success: true };
     } catch (error) {
       console.error('Error:', error);
       setError(error.message);
