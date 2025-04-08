@@ -3,10 +3,12 @@ import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { TrashIcon } from '@heroicons/react/24/outline';
 
 export default function Categories({ categories, onCategoriesChange }) {
-  const [localCategories, setLocalCategories] = useState(categories || []);
+  const [localCategories, setLocalCategories] = useState([]);
 
   useEffect(() => {
-    setLocalCategories(categories || []);
+    // Asegurarse de que categories es un array
+    const validCategories = Array.isArray(categories) ? categories : [];
+    setLocalCategories(validCategories);
   }, [categories]);
 
   const handleDragEnd = (result) => {
@@ -26,6 +28,14 @@ export default function Categories({ categories, onCategoriesChange }) {
     onCategoriesChange(newCategories);
   };
 
+  if (!Array.isArray(localCategories) || localCategories.length === 0) {
+    return (
+      <div className="mt-4 p-4 text-center bg-gray-50 rounded-lg">
+        <p className="text-gray-500">No hay categorías disponibles</p>
+      </div>
+    );
+  }
+
   return (
     <div className="mt-4">
       <h3 className="text-lg font-semibold mb-2">Categorías</h3>
@@ -39,8 +49,8 @@ export default function Categories({ categories, onCategoriesChange }) {
             >
               {localCategories.map((category, index) => (
                 <Draggable
-                  key={category.id || index}
-                  draggableId={category.id?.toString() || index.toString()}
+                  key={category.id || `category-${index}`}
+                  draggableId={category.id?.toString() || `category-${index}`}
                   index={index}
                 >
                   {(provided, snapshot) => (
@@ -54,7 +64,10 @@ export default function Categories({ categories, onCategoriesChange }) {
                           : 'bg-white border-gray-200'
                       }`}
                     >
-                      <span className="flex-1">{category.name}</span>
+                      <div className="flex items-center space-x-3 flex-1">
+                        <span className="text-2xl">{category.emoji}</span>
+                        <span className="flex-1">{category.name}</span>
+                      </div>
                       <button
                         onClick={() => handleDelete(index)}
                         className="ml-2 p-1 text-gray-400 hover:text-red-500 rounded-full hover:bg-red-50 transition-colors"

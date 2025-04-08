@@ -3,22 +3,47 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Categories from '@/app/components/Categories';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 
 export default function CategoriesPage() {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const { data: session, status } = useSession();
+  const router = useRouter();
 
   useEffect(() => {
+    if (status === 'loading') return;
+    
+    if (!session) {
+      router.push('/login');
+      return;
+    }
+
     fetchCategories();
-  }, []);
+  }, [session, status]);
 
   const fetchCategories = async () => {
     try {
+      setLoading(true);
+      setError(null);
       const response = await fetch('/api/categories');
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Error al cargar las categorías');
+      }
+
       const data = await response.json();
+      if (!Array.isArray(data)) {
+        throw new Error('Formato de datos inválido');
+      }
+      
       setCategories(data);
     } catch (error) {
       console.error('Error al cargar categorías:', error);
+      setError(error.message);
     } finally {
       setLoading(false);
     }
@@ -61,10 +86,41 @@ export default function CategoriesPage() {
     }
   };
 
+  if (status === 'loading') {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-xl">Verificando sesión...</div>
+      </div>
+    );
+  }
+
+  if (!session) {
+    return null; // La redirección se maneja en el useEffect
+  }
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="text-xl">Cargando...</div>
+        <div className="text-xl">Cargando categorías...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-white shadow rounded-lg">
+        <div className="px-4 py-5 sm:p-6">
+          <div className="text-center">
+            <h3 className="text-lg font-medium text-red-600 mb-4">Error al cargar las categorías</h3>
+            <p className="text-gray-600 mb-4">{error}</p>
+            <button
+              onClick={fetchCategories}
+              className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700"
+            >
+              Intentar de nuevo
+            </button>
+          </div>
+        </div>
       </div>
     );
   }

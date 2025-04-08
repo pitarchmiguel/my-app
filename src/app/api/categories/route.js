@@ -9,6 +9,13 @@ const prisma = new PrismaClient();
 
 export async function GET() {
   try {
+    const session = await getServerSession(authOptions);
+
+    // Si no es una ruta pública, verificar autenticación
+    if (!session) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+    }
+
     const categories = await prisma.category.findMany({
       orderBy: {
         order: 'asc',
@@ -22,13 +29,22 @@ export async function GET() {
       },
     });
 
+    if (!categories) {
+      return NextResponse.json({ categories: [] });
+    }
+
     return NextResponse.json(categories);
   } catch (error) {
-    console.error('Error al obtener categorías:', error);
+    console.error('Error detallado al obtener categorías:', {
+      message: error.message,
+      stack: error.stack,
+    });
     return NextResponse.json(
-      { error: 'Error al obtener categorías' },
+      { error: 'Error al obtener categorías', details: error.message },
       { status: 500 }
     );
+  } finally {
+    await prisma.$disconnect();
   }
 }
 
