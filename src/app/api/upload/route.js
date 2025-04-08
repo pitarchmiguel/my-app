@@ -3,6 +3,9 @@ import { uploadImage } from '@/utils/cloudinary';
 
 export const dynamic = 'force-dynamic';
 
+// Tamaño máximo permitido: 10MB
+const MAX_FILE_SIZE = 10 * 1024 * 1024;
+
 export async function POST(request) {
   try {
     console.log('Recibida solicitud de subida de imagen');
@@ -22,6 +25,15 @@ export async function POST(request) {
       tipo: file.type,
       tamaño: file.size
     });
+
+    // Validar tamaño del archivo
+    if (file.size > MAX_FILE_SIZE) {
+      console.error('Archivo demasiado grande:', file.size);
+      return NextResponse.json(
+        { error: 'El archivo no puede ser mayor a 10MB' },
+        { status: 400 }
+      );
+    }
 
     // Validar tipo de archivo
     if (!file.type.startsWith('image/')) {

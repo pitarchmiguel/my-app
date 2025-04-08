@@ -25,10 +25,16 @@ export async function uploadImage(file) {
     console.log('Tipo de archivo:', file.type);
     console.log('Tamaño del buffer:', buffer.length);
 
-    // Subir directamente usando el método upload
-    console.log('Intentando subir a Cloudinary...');
+    // Subir con optimización automática
+    console.log('Intentando subir a Cloudinary con optimización...');
     const result = await cloudinary.uploader.upload(base64File, {
       folder: 'firestation',
+      quality: 'auto', // Calidad automática
+      fetch_format: 'auto', // Formato automático
+      flags: 'lossy', // Compresión con pérdida para reducir tamaño
+      transformation: [
+        { width: 2000, height: 2000, crop: 'limit' } // Limitar dimensiones máximas
+      ]
     });
 
     console.log('Subida exitosa a Cloudinary:', result.secure_url);
