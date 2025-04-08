@@ -8,6 +8,14 @@ import ProductImage from './ProductImage';
 
 // Componente Modal de Información
 function InfoModal({ isOpen, onClose }) {
+  const handleContactClick = (type) => {
+    if (typeof window !== 'undefined' && window.gtag) {
+      window.gtag('event', 'contact_click', {
+        'contact_type': type
+      });
+    }
+  };
+
   return (
     <Dialog open={isOpen} onClose={onClose} className="relative z-50">
       <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
@@ -19,6 +27,7 @@ function InfoModal({ isOpen, onClose }) {
               src="/images/map_fire.png"
               alt="Ubicación Fire Station"
               fill
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               className="object-cover"
             />
             <button
@@ -41,7 +50,10 @@ function InfoModal({ isOpen, onClose }) {
 
             {/* Información de contacto */}
             <div className="space-y-6">
-              <div className="flex items-start space-x-4">
+              <div 
+                className="flex items-start space-x-4 cursor-pointer" 
+                onClick={() => handleContactClick('address')}
+              >
                 <div className="w-6 h-6 mt-1">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -54,7 +66,10 @@ function InfoModal({ isOpen, onClose }) {
                 </div>
               </div>
 
-              <div className="flex items-center space-x-4">
+              <div 
+                className="flex items-center space-x-4 cursor-pointer"
+                onClick={() => handleContactClick('phone')}
+              >
                 <div className="w-6 h-6">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
@@ -157,6 +172,17 @@ export default function HomePage({ categories, products, error }) {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
 
+  // Tracking de vista de página
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.gtag) {
+      window.gtag('event', 'page_view', {
+        page_title: 'Carta Firestation',
+        page_location: window.location.href,
+        page_path: window.location.pathname
+      });
+    }
+  }, []);
+
   useEffect(() => {
     if (error) {
       console.error('Error en los datos:', error);
@@ -185,6 +211,41 @@ export default function HomePage({ categories, products, error }) {
   // Asegurarse de que products es un array
   const safeProducts = Array.isArray(products) ? products : [];
 
+  const handleCategoryClick = (category) => {
+    if (typeof window !== 'undefined' && window.gtag) {
+      window.gtag('event', 'view_category', {
+        'category_id': category.id,
+        'category_name': category.name
+      });
+    }
+    setSelectedCategory(selectedCategory === category.id ? null : category.id);
+  };
+
+  const handleProductClick = (product) => {
+    if (typeof window !== 'undefined' && window.gtag) {
+      window.gtag('event', 'view_item', {
+        currency: 'EUR',
+        value: product.price,
+        items: [{
+          item_id: product.id,
+          item_name: product.name,
+          price: product.price,
+          item_category: product.category?.name
+        }]
+      });
+    }
+    setSelectedImage(product);
+  };
+
+  const handleInfoClick = () => {
+    if (typeof window !== 'undefined' && window.gtag) {
+      window.gtag('event', 'view_restaurant_info', {
+        'action': 'open_info_modal'
+      });
+    }
+    setIsInfoModalOpen(true);
+  };
+
   return (
     <main className="min-h-screen">
       {/* Hero Section con imagen de fondo */}
@@ -193,6 +254,7 @@ export default function HomePage({ categories, products, error }) {
           src="/images/hero_firestation.jpg"
           alt="Interior del restaurante"
           fill
+          sizes="100vw"
           className="object-cover opacity-80"
           priority
         />
@@ -208,7 +270,7 @@ export default function HomePage({ categories, products, error }) {
         </div>
         {/* Botón de información */}
         <button
-          onClick={() => setIsInfoModalOpen(true)}
+          onClick={handleInfoClick}
           className="absolute bottom-4 right-4 bg-white/10 backdrop-blur-sm rounded-full p-3 hover:bg-white/20 transition-colors"
         >
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6 text-white">
@@ -229,9 +291,7 @@ export default function HomePage({ categories, products, error }) {
             return (
               <div key={category.id} className="space-y-4">
                 <button
-                  onClick={() => setSelectedCategory(
-                    selectedCategory === category.id ? null : category.id
-                  )}
+                  onClick={() => handleCategoryClick(category)}
                   className={`w-full text-left p-3 rounded-lg border-2 transition-all ${
                     isSelected
                       ? 'border-gray-900 bg-gray-50'
@@ -263,7 +323,7 @@ export default function HomePage({ categories, products, error }) {
                             </div>
                           </div>
                           <button
-                            onClick={() => setSelectedImage(product)}
+                            onClick={() => handleProductClick(product)}
                             className="relative w-20 h-20 flex-shrink-0 overflow-hidden rounded-md transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
                           >
                             <ProductImage
