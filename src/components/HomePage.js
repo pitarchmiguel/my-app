@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { Dialog } from '@headlessui/react';
+import { Dialog, Transition } from '@headlessui/react';
+import { Fragment } from 'react';
 
 // Componente Modal de Información
 function InfoModal({ isOpen, onClose }) {
@@ -83,42 +84,70 @@ function InfoModal({ isOpen, onClose }) {
 // Componente Modal de Imagen
 function ImageModal({ isOpen, onClose, imageUrl, productName, product }) {
   return (
-    <Dialog open={isOpen} onClose={onClose} className="relative z-50">
-      <div className="fixed inset-0 bg-white" aria-hidden="true" />
-      <div className="fixed inset-0 flex items-center justify-center p-4">
-        <Dialog.Panel className="bg-white rounded-3xl overflow-hidden max-w-2xl w-full shadow-xl">
-          <div className="relative aspect-[4/3] w-full">
-            <Image
-              src={imageUrl}
-              alt={productName}
-              fill
-              className="object-cover"
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 75vw, 50vw"
-            />
-          </div>
-          
-          <div className="p-8">
-            <div className="space-y-6">
-              <div>
-                <h2 className="text-3xl font-bold text-gray-900 mb-2">{productName}</h2>
-                <p className="text-2xl font-bold text-gray-900">{product.price.toFixed(2)} €</p>
-              </div>
-              
-              <p className="text-gray-600 text-lg leading-relaxed">{product.description}</p>
-            </div>
-          </div>
-
-          <button
+    <Transition show={isOpen} as={Fragment}>
+      <Dialog onClose={onClose} className="relative z-50">
+        <Transition.Child
+          as={Fragment}
+          enter="ease-out duration-300"
+          enterFrom="opacity-0"
+          enterTo="opacity-100"
+          leave="ease-in duration-200"
+          leaveFrom="opacity-100"
+          leaveTo="opacity-0"
+        >
+          <div 
+            className="fixed inset-0 bg-black/30 backdrop-blur-sm" 
+            aria-hidden="true" 
             onClick={onClose}
-            className="absolute top-4 right-4 bg-black/10 backdrop-blur-sm rounded-full p-2 hover:bg-black/20 transition-colors"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </Dialog.Panel>
-      </div>
-    </Dialog>
+          />
+        </Transition.Child>
+        
+        <div className="fixed inset-x-0 bottom-0 overflow-y-auto">
+          <div className="flex min-h-full items-end justify-center p-0">
+            <Transition.Child
+              as={Fragment}
+              enter="ease-out duration-300"
+              enterFrom="translate-y-full"
+              enterTo="translate-y-0"
+              leave="ease-in duration-200"
+              leaveFrom="translate-y-0"
+              leaveTo="translate-y-full"
+            >
+              <Dialog.Panel className="w-full transform overflow-hidden bg-white shadow-xl rounded-t-2xl">
+                <div className="relative aspect-[16/9] w-full">
+                  <Image
+                    src={imageUrl}
+                    alt={productName}
+                    fill
+                    className="object-cover"
+                    sizes="100vw"
+                  />
+                  <button
+                    onClick={onClose}
+                    className="absolute top-4 right-4 bg-black/10 backdrop-blur-sm rounded-full p-2 hover:bg-black/20 transition-colors"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                
+                <div className="p-6">
+                  <div className="space-y-4">
+                    <div>
+                      <h2 className="text-2xl font-bold text-gray-900 mb-1">{productName}</h2>
+                      <p className="text-xl font-bold text-gray-900">{product.price.toFixed(2)} €</p>
+                    </div>
+                    
+                    <p className="text-gray-600 text-base leading-relaxed">{product.description}</p>
+                  </div>
+                </div>
+              </Dialog.Panel>
+            </Transition.Child>
+          </div>
+        </div>
+      </Dialog>
+    </Transition>
   );
 }
 
