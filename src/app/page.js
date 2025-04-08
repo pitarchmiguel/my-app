@@ -8,17 +8,10 @@ async function getData() {
     const [categories, products] = await Promise.all([
       prisma.category.findMany({
         include: {
-          products: {
-            where: {
-              inStock: true,
-            },
-          },
+          products: true,
         },
       }),
       prisma.product.findMany({
-        where: {
-          inStock: true,
-        },
         include: {
           category: true,
         },
@@ -51,8 +44,6 @@ async function getData() {
       products: [],
       error: error.message
     };
-  } finally {
-    await prisma.$disconnect();
   }
 }
 

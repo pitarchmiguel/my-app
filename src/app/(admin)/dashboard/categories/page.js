@@ -2,56 +2,25 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import Categories from '@/app/components/Categories';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
 
 export default function CategoriesPage() {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const { data: session, status } = useSession();
-  const router = useRouter();
 
   useEffect(() => {
-    if (status === 'loading') return;
-    
-    if (!session) {
-      router.push('/login');
-      return;
-    }
-
     fetchCategories();
-  }, [session, status]);
+  }, []);
 
   const fetchCategories = async () => {
     try {
-      setLoading(true);
-      setError(null);
       const response = await fetch('/api/categories');
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Error al cargar las categorías');
-      }
-
       const data = await response.json();
-      if (!Array.isArray(data)) {
-        throw new Error('Formato de datos inválido');
-      }
-      
       setCategories(data);
     } catch (error) {
       console.error('Error al cargar categorías:', error);
-      setError(error.message);
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleCategoriesChange = async (newCategories) => {
-    // Temporalmente solo actualizamos el estado local
-    setCategories(newCategories);
   };
 
   const handleDelete = async (id) => {
@@ -69,41 +38,10 @@ export default function CategoriesPage() {
     }
   };
 
-  if (status === 'loading') {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="text-xl">Verificando sesión...</div>
-      </div>
-    );
-  }
-
-  if (!session) {
-    return null; // La redirección se maneja en el useEffect
-  }
-
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="text-xl">Cargando categorías...</div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="bg-white shadow rounded-lg">
-        <div className="px-4 py-5 sm:p-6">
-          <div className="text-center">
-            <h3 className="text-lg font-medium text-red-600 mb-4">Error al cargar las categorías</h3>
-            <p className="text-gray-600 mb-4">{error}</p>
-            <button
-              onClick={fetchCategories}
-              className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700"
-            >
-              Intentar de nuevo
-            </button>
-          </div>
-        </div>
+        <div className="text-xl">Cargando...</div>
       </div>
     );
   }
@@ -121,10 +59,55 @@ export default function CategoriesPage() {
           </Link>
         </div>
 
-        <Categories 
-          categories={categories} 
-          onCategoriesChange={handleCategoriesChange}
-        />
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Emoji
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Nombre
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Productos
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Acciones
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {categories.map((category) => (
+                <tr key={category.id}>
+                  <td className="px-6 py-4 whitespace-nowrap text-2xl">
+                    {category.emoji}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {category.name}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {category.products?.length || 0} productos
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <Link
+                      href={`/dashboard/categories/${category.id}`}
+                      className="text-indigo-600 hover:text-indigo-900 mr-4"
+                    >
+                      Editar
+                    </Link>
+                    <button
+                      onClick={() => handleDelete(category.id)}
+                      className="text-red-600 hover:text-red-900"
+                    >
+                      Eliminar
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
