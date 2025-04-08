@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import toast from 'react-hot-toast';
 
 export default function ProductForm({ params }) {
   const router = useRouter();
@@ -78,7 +79,8 @@ export default function ProductForm({ params }) {
           imageUrl = uploadData.url;
         } catch (uploadError) {
           console.error('Error en la subida de imagen:', uploadError);
-          throw new Error('Error al subir la imagen. Por favor, inténtalo de nuevo.');
+          toast.error('Error al subir la imagen. Por favor, inténtalo de nuevo.');
+          return;
         }
       }
 
@@ -105,10 +107,11 @@ export default function ProductForm({ params }) {
         throw new Error(`Error al guardar el producto: ${responseData.error}`);
       }
 
+      toast.success(isNew ? 'Producto creado con éxito' : 'Producto actualizado con éxito');
       router.push('/dashboard/products');
     } catch (error) {
       console.error('Error al guardar el producto:', error);
-      alert(error.message || 'Error al guardar el producto');
+      toast.error(error.message || 'Error al guardar el producto');
     }
   };
 
