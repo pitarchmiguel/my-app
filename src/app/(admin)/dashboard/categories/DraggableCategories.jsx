@@ -17,10 +17,14 @@ import {
 } from '@dnd-kit/sortable';
 import { SortableItem } from './SortableItem';
 
+// Iconos de Heroicons (asegúrate de que tienes @heroicons/react instalado)
+import { PencilIcon, TrashIcon, CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
+
 export default function DraggableCategories({ categories, onReorder, onEdit, onDelete }) {
   const [items, setItems] = useState(categories);
   const [editingCategory, setEditingCategory] = useState(null);
   const [error, setError] = useState(null);
+  const [isProcessing, setIsProcessing] = useState(false);
   
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -49,6 +53,7 @@ export default function DraggableCategories({ categories, onReorder, onEdit, onD
   };
 
   const handleEdit = (category) => {
+    if (isProcessing) return;
     setError(null);
     setEditingCategory({
       ...category,
@@ -58,8 +63,9 @@ export default function DraggableCategories({ categories, onReorder, onEdit, onD
   };
 
   const handleSaveEdit = async () => {
-    if (!editingCategory) return;
+    if (!editingCategory || isProcessing) return;
     setError(null);
+    setIsProcessing(true);
 
     try {
       await onEdit(editingCategory.id, {
@@ -76,20 +82,28 @@ export default function DraggableCategories({ categories, onReorder, onEdit, onD
       setEditingCategory(null);
     } catch (error) {
       setError(error.message || 'Error al editar la categoría');
+    } finally {
+      setIsProcessing(false);
     }
   };
 
   const handleDelete = async (id) => {
+    if (isProcessing) return;
+    
     if (!window.confirm('¿Estás seguro de que quieres eliminar esta categoría? Esta acción no se puede deshacer.')) {
       return;
     }
 
     setError(null);
+    setIsProcessing(true);
+    
     try {
       await onDelete(id);
       setItems(items.filter(item => item.id !== id));
     } catch (error) {
       setError(error.message || 'Error al eliminar la categoría');
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -135,23 +149,26 @@ export default function DraggableCategories({ categories, onReorder, onEdit, onD
                         })}
                         className="flex-1 p-2 border rounded focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                         placeholder="Nombre de la categoría"
+                        disabled={isProcessing}
                       />
                     </div>
                     <div className="flex gap-2">
                       <button
                         onClick={handleSaveEdit}
-                        className="px-3 py-1 text-sm text-white bg-green-500 rounded hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                        disabled={isProcessing}
+                        className="p-2 text-white bg-green-500 rounded-full hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50"
                       >
-                        Guardar
+                        <CheckIcon className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => {
                           setEditingCategory(null);
                           setError(null);
                         }}
-                        className="px-3 py-1 text-sm text-white bg-gray-500 rounded hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+                        disabled={isProcessing}
+                        className="p-2 text-white bg-gray-500 rounded-full hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-50"
                       >
-                        Cancelar
+                        <XMarkIcon className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
@@ -166,15 +183,19 @@ export default function DraggableCategories({ categories, onReorder, onEdit, onD
                     <div className="flex gap-2">
                       <button
                         onClick={() => handleEdit(category)}
-                        className="px-3 py-1 text-sm text-white bg-blue-500 rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                        disabled={isProcessing}
+                        className="p-2 text-white bg-blue-500 rounded-full hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
+                        title="Editar categoría"
                       >
-                        Editar
+                        <PencilIcon className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleDelete(category.id)}
-                        className="px-3 py-1 text-sm text-white bg-red-500 rounded hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                        disabled={isProcessing}
+                        className="p-2 text-white bg-red-500 rounded-full hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50"
+                        title="Eliminar categoría"
                       >
-                        Eliminar
+                        <TrashIcon className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
