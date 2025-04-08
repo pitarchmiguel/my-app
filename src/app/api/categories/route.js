@@ -17,9 +17,6 @@ export async function GET() {
     }
 
     const categories = await prisma.category.findMany({
-      orderBy: {
-        createdAt: 'asc',
-      },
       include: {
         products: {
           where: {
@@ -72,5 +69,7 @@ export async function POST(request) {
       { error: 'Error al crear categoría' },
       { status: 500 }
     );
+  } finally {
+    await prisma.$disconnect();
   }
 } 
