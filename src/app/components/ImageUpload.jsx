@@ -1,8 +1,69 @@
 import { useState } from 'react';
 
+const compressImage = async (file, maxSizeMB = 1) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target.result;
+      
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        
+        // Calcular nuevas dimensiones manteniendo el aspect ratio
+        const maxDimension = 1920; // Máximo 1920px en cualquier dimensión
+        if (width > height && width > maxDimension) {
+          height = Math.round((height * maxDimension) / width);
+          width = maxDimension;
+        } else if (height > maxDimension) {
+          width = Math.round((width * maxDimension) / height);
+          height = maxDimension;
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        // Comprimir con calidad progresiva hasta alcanzar el tamaño deseado
+        let quality = 0.7;
+        let dataUrl;
+        
+        do {
+          dataUrl = canvas.toDataURL('image/jpeg', quality);
+          quality -= 0.1;
+        } while (dataUrl.length > maxSizeMB * 1024 * 1024 && quality > 0.1);
+        
+        // Convertir base64 a Blob
+        fetch(dataUrl)
+          .then(res => res.blob())
+          .then(blob => {
+            // Crear un nuevo File con el mismo nombre pero comprimido
+            const compressedFile = new File([blob], file.name, {
+              type: 'image/jpeg',
+              lastModified: new Date().getTime()
+            });
+            resolve(compressedFile);
+          })
+          .catch(reject);
+      };
+      
+      img.onerror = reject;
+    };
+    
+    reader.onerror = reject;
+  });
+};
+
 export default function ImageUpload({ onImageUploaded }) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState(null);
+  const [progress, setProgress] = useState('');
 
   const handleUpload = async (e) => {
     const file = e.target.files[0];
@@ -11,14 +72,14 @@ export default function ImageUpload({ onImageUploaded }) {
     try {
       setUploading(true);
       setError(null);
+      setProgress('Comprimiendo imagen...');
 
-      // Validar tamaño antes de intentar subir
-      if (file.size > 10 * 1024 * 1024) {
-        throw new Error('El archivo no puede ser mayor a 10MB');
-      }
-
+      // Comprimir imagen antes de subir
+      const compressedFile = await compressImage(file, 2); // Máximo 2MB
+      
+      setProgress('Subiendo imagen...');
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append('file', compressedFile);
 
       const response = await fetch('/api/upload', {
         method: 'POST',
@@ -32,9 +93,11 @@ export default function ImageUpload({ onImageUploaded }) {
 
       const data = await response.json();
       onImageUploaded(data.url);
+      setProgress('');
     } catch (error) {
       console.error('Error al subir imagen:', error);
       setError(error.message);
+      setProgress('');
     } finally {
       setUploading(false);
     }
@@ -54,7 +117,7 @@ export default function ImageUpload({ onImageUploaded }) {
           file:bg-violet-50 file:text-violet-700
           hover:file:bg-violet-100"
       />
-      {uploading && <p className="mt-2 text-sm text-gray-500">Subiendo imagen...</p>}
+      {progress && <p className="mt-2 text-sm text-gray-500">{progress}</p>}
       {error && <p className="mt-2 text-sm text-red-500">{error}</p>}
     </div>
   );
