@@ -42,7 +42,7 @@ export async function PUT(request, { params }) {
     const { id } = params;
     const data = await request.json();
 
-    const updatedCategory = await prismaClient.category.update({
+    const updatedCategory = await prisma.category.update({
       where: { id },
       data: {
         name: data.name,
@@ -65,10 +65,17 @@ export async function DELETE(request, { params }) {
     const { id } = params;
 
     // Primero verificamos si la categoría tiene productos
-    const category = await prismaClient.category.findUnique({
+    const category = await prisma.category.findUnique({
       where: { id },
       include: { products: true },
     });
+
+    if (!category) {
+      return NextResponse.json(
+        { error: 'Categoría no encontrada' },
+        { status: 404 }
+      );
+    }
 
     if (category.products.length > 0) {
       return NextResponse.json(
@@ -77,7 +84,7 @@ export async function DELETE(request, { params }) {
       );
     }
 
-    await prismaClient.category.delete({
+    await prisma.category.delete({
       where: { id },
     });
 
