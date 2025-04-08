@@ -6,8 +6,8 @@ import Providers from "./providers";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
-  title: "Panel de Administración",
-  description: "Panel de administración para gestionar productos y categorías",
+  title: "Carta Firestation Cafeteria",
+  description: "Carta de productos de la cafeteria Firestation",
 };
 
 export default function RootLayout({ children }) {
