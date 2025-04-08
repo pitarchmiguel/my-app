@@ -5,43 +5,46 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(request) {
   try {
+    console.log('Recibida solicitud de subida de imagen');
     const formData = await request.formData();
     const file = formData.get('file');
 
     if (!file) {
+      console.error('No se encontró archivo en la solicitud');
       return NextResponse.json(
-        { error: 'No se ha proporcionado ningún archivo' },
+        { error: 'No se proporcionó ningún archivo' },
         { status: 400 }
       );
     }
 
-    // Verificar que el archivo es una imagen
+    console.log('Archivo recibido:', {
+      nombre: file.name,
+      tipo: file.type,
+      tamaño: file.size
+    });
+
+    // Validar tipo de archivo
     if (!file.type.startsWith('image/')) {
+      console.error('Tipo de archivo no válido:', file.type);
       return NextResponse.json(
-        { error: 'El archivo debe ser una imagen' },
+        { error: 'Solo se permiten archivos de imagen' },
         { status: 400 }
       );
     }
 
-    console.log('Tipo de archivo:', file.type);
-    console.log('Tamaño del archivo:', file.size);
-
-    // Subir la imagen a Cloudinary
+    console.log('Iniciando proceso de subida a Cloudinary');
     const imageUrl = await uploadImage(file);
+    console.log('Imagen subida exitosamente:', imageUrl);
 
-    if (!imageUrl) {
-      throw new Error('No se recibió URL de la imagen');
-    }
-
-    console.log('URL de la imagen subida:', imageUrl);
     return NextResponse.json({ url: imageUrl });
   } catch (error) {
-    console.error('Error detallado en la subida de imagen:', error);
+    console.error('Error detallado en el endpoint de subida:', {
+      message: error.message,
+      name: error.name,
+      stack: error.stack
+    });
     return NextResponse.json(
-      { 
-        error: 'Error al procesar la imagen',
-        details: error.message 
-      },
+      { error: `Error al procesar la subida: ${error.message}` },
       { status: 500 }
     );
   }

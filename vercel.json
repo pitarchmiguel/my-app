@@ -3,7 +3,10 @@
   "installCommand": "npm install",
   "framework": "nextjs",
   "env": {
-    "NEXTAUTH_URL": "https://your-domain.vercel.app",
-    "NEXTAUTH_SECRET": "your-secret-key"
+    "NEXTAUTH_URL": "https://thefirestation.vercel.app",
+    "NEXTAUTH_SECRET": "2x6+yPkBHuZdKyKpVOuPX9zQnVhqQNDz5VwcGxB3YFM=",
+    "CLOUDINARY_CLOUD_NAME": "dnv7jmjt1",
+    "CLOUDINARY_API_KEY": "721518481576849",
+    "CLOUDINARY_API_SECRET": "7E72Z_iWF5SWDqWvk68SdyGIi2Q"
   }
 } 
