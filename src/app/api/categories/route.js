@@ -10,6 +10,9 @@ const prisma = new PrismaClient();
 export async function GET() {
   try {
     const categories = await prisma.category.findMany({
+      orderBy: {
+        order: 'asc',
+      },
       include: {
         products: {
           where: {

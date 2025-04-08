@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Categories from '@/app/components/Categories';
 
 export default function CategoriesPage() {
   const [categories, setCategories] = useState([]);
@@ -20,6 +21,28 @@ export default function CategoriesPage() {
       console.error('Error al cargar categorías:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCategoriesChange = async (newCategories) => {
+    try {
+      const response = await fetch('/api/categories/reorder', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ categories: newCategories }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al reordenar categorías');
+      }
+
+      setCategories(newCategories);
+    } catch (error) {
+      console.error('Error al actualizar el orden:', error);
+      // Recargar las categorías originales en caso de error
+      fetchCategories();
     }
   };
 
@@ -59,55 +82,10 @@ export default function CategoriesPage() {
           </Link>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Emoji
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Nombre
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Productos
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Acciones
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {categories.map((category) => (
-                <tr key={category.id}>
-                  <td className="px-6 py-4 whitespace-nowrap text-2xl">
-                    {category.emoji}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {category.name}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {category.products?.length || 0} productos
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <Link
-                      href={`/dashboard/categories/${category.id}`}
-                      className="text-indigo-600 hover:text-indigo-900 mr-4"
-                    >
-                      Editar
-                    </Link>
-                    <button
-                      onClick={() => handleDelete(category.id)}
-                      className="text-red-600 hover:text-red-900"
-                    >
-                      Eliminar
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <Categories 
+          categories={categories} 
+          onCategoriesChange={handleCategoriesChange}
+        />
       </div>
     </div>
   );
