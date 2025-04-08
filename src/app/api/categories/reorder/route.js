@@ -15,22 +15,31 @@ export async function PUT(request) {
 
     const { categories } = await request.json();
 
-    // Actualizar el orden de cada categoría
-    await Promise.all(
-      categories.map(async (category, index) => {
-        await prisma.category.update({
-          where: { id: category.id },
-          data: { order: index },
-        });
+    // Actualizar cada categoría con su nuevo orden
+    const updates = categories.map((category, index) => 
+      prisma.category.update({
+        where: { id: category.id },
+        data: { order: index }
       })
     );
 
-    return NextResponse.json({ message: 'Orden actualizado correctamente' });
+    await prisma.$transaction(updates);
+
+    // Obtener las categorías actualizadas
+    const updatedCategories = await prisma.category.findMany({
+      orderBy: {
+        order: 'asc'
+      }
+    });
+
+    return NextResponse.json(updatedCategories);
   } catch (error) {
     console.error('Error al reordenar categorías:', error);
     return NextResponse.json(
       { error: 'Error al reordenar categorías' },
       { status: 500 }
     );
+  } finally {
+    await prisma.$disconnect();
   }
 } 
