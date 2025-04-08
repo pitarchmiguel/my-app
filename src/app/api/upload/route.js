@@ -6,9 +6,28 @@ export const dynamic = 'force-dynamic';
 // Tamaño máximo permitido: 10MB
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
+// Configurar límites de tamaño para el body
+export const config = {
+  api: {
+    bodyParser: false,
+    responseLimit: false
+  }
+};
+
 export async function POST(request) {
   try {
     console.log('Recibida solicitud de subida de imagen');
+    
+    // Verificar el tamaño de la solicitud
+    const contentLength = request.headers.get('content-length');
+    if (contentLength && parseInt(contentLength) > MAX_FILE_SIZE) {
+      console.error('Solicitud demasiado grande:', contentLength);
+      return NextResponse.json(
+        { error: 'El archivo no puede ser mayor a 10MB' },
+        { status: 413 }
+      );
+    }
+
     const formData = await request.formData();
     const file = formData.get('file');
 
@@ -31,7 +50,7 @@ export async function POST(request) {
       console.error('Archivo demasiado grande:', file.size);
       return NextResponse.json(
         { error: 'El archivo no puede ser mayor a 10MB' },
-        { status: 400 }
+        { status: 413 }
       );
     }
 
