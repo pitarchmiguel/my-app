@@ -50,25 +50,8 @@ export default function CategoriesPage() {
   };
 
   const handleCategoriesChange = async (newCategories) => {
-    try {
-      const response = await fetch('/api/categories/reorder', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ categories: newCategories }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Error al reordenar categorías');
-      }
-
-      setCategories(newCategories);
-    } catch (error) {
-      console.error('Error al actualizar el orden:', error);
-      // Recargar las categorías originales en caso de error
-      fetchCategories();
-    }
+    // Temporalmente solo actualizamos el estado local
+    setCategories(newCategories);
   };
 
   const handleDelete = async (id) => {
