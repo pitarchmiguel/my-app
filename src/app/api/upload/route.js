@@ -6,13 +6,9 @@ export const dynamic = 'force-dynamic';
 // Tamaño máximo permitido: 10MB
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
-// Configurar límites de tamaño para el body
-export const config = {
-  api: {
-    bodyParser: false,
-    responseLimit: false
-  }
-};
+// Nueva configuración para Next.js 14
+export const runtime = 'nodejs';
+export const maxDuration = 60;
 
 export async function POST(request) {
   try {
