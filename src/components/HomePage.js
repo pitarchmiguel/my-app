@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
+import ProductImage from './ProductImage';
 
 // Componente Modal de Información
 function InfoModal({ isOpen, onClose }) {
@@ -115,12 +116,10 @@ function ImageModal({ isOpen, onClose, imageUrl, productName, product }) {
             >
               <Dialog.Panel className="w-full h-[75vh] transform overflow-hidden bg-white shadow-xl rounded-t-2xl">
                 <div className="relative aspect-[16/9] w-full">
-                  <Image
-                    src={imageUrl}
-                    alt={productName}
-                    fill
-                    className="object-cover"
-                    sizes="100vw"
+                  <ProductImage
+                    imageUrl={imageUrl}
+                    productName={productName}
+                    className="h-full w-full"
                   />
                   <button
                     onClick={onClose}
@@ -136,7 +135,9 @@ function ImageModal({ isOpen, onClose, imageUrl, productName, product }) {
                   <div className="space-y-4">
                     <div>
                       <h2 className="text-2xl font-bold text-gray-900 mb-1">{productName}</h2>
-                      <p className="text-xl font-bold text-gray-900">{product.price.toFixed(2)} €</p>
+                      <p className={`text-xl font-bold text-gray-900 ${product.price === 0 ? 'italic' : ''}`}>
+                        {product.price === 0 ? 'Consultar precio' : `${product.price.toFixed(2)} €`}
+                      </p>
                     </div>
                     
                     <p className="text-gray-600 text-base leading-relaxed">{product.description}</p>
@@ -200,64 +201,19 @@ export default function HomePage({ categories, products, error }) {
           <Image
             src="/images/logo_firestation.svg"
             alt="Logo Fire Station"
-            fill
-            className="object-contain"
-            priority
+            width={64}
+            height={64}
+            className="w-full h-full object-contain"
           />
         </div>
-      </section>
-
-      {/* Título FIRESTATION */}
-      <section className="max-w-4xl mx-auto px-8 pt-8">
-        <h1 className="text-2xl font-black text-gray-900">
-          FIRESTATION
-        </h1>
-      </section>
-
-      {/* Sección de información */}
-      <section className="max-w-4xl mx-auto px-4 py-2">
+        {/* Botón de información */}
         <button
           onClick={() => setIsInfoModalOpen(true)}
-          className="w-full bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow p-4"
+          className="absolute bottom-4 right-4 bg-white/10 backdrop-blur-sm rounded-full p-3 hover:bg-white/20 transition-colors"
         >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={2}
-                  stroke="currentColor"
-                  className="w-5 h-5 text-gray-600"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"
-                  />
-                </svg>
-              </div>
-              <div className="flex flex-col items-start">
-                <span className="text-lg font-bold text-gray-900">Información</span>
-                <span className="text-gray-600 text-sm">Dirección, Teléfono, Horarios</span>
-              </div>
-            </div>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={2}
-              stroke="currentColor"
-              className="w-6 h-6 text-gray-400"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M8.25 4.5l7.5 7.5-7.5 7.5"
-              />
-            </svg>
-          </div>
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6 text-white">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+          </svg>
         </button>
       </section>
 
@@ -301,23 +257,21 @@ export default function HomePage({ categories, products, error }) {
                             <h3 className="text-lg font-semibold">{product.name}</h3>
                             <p className="text-sm text-gray-600 mb-2">{product.description}</p>
                             <div className="flex items-center justify-between">
-                              <span className="text-lg font-bold">{product.price.toFixed(2)}€</span>
+                              <span className={`text-lg font-bold ${product.price === 0 ? 'italic text-gray-600' : ''}`}>
+                                {product.price === 0 ? 'Consultar precio' : `${product.price.toFixed(2)} €`}
+                              </span>
                             </div>
                           </div>
-                          {product.imageUrl && (
-                            <button
-                              onClick={() => setSelectedImage(product)}
-                              className="relative w-20 h-20 flex-shrink-0 overflow-hidden rounded-md transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-                            >
-                              <Image
-                                src={product.imageUrl}
-                                alt={product.name}
-                                fill
-                                className="object-cover"
-                              />
-                              <div className="absolute inset-0 bg-black/0 hover:bg-black/10 transition-colors" />
-                            </button>
-                          )}
+                          <button
+                            onClick={() => setSelectedImage(product)}
+                            className="relative w-20 h-20 flex-shrink-0 overflow-hidden rounded-md transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                          >
+                            <ProductImage
+                              imageUrl={product.imageUrl}
+                              productName={product.name}
+                              className="h-full w-full"
+                            />
+                          </button>
                         </div>
                       ))
                     ) : (
@@ -333,13 +287,13 @@ export default function HomePage({ categories, products, error }) {
         </div>
       </section>
 
-      {/* Modal de Información */}
+      {/* Modal de información */}
       <InfoModal
         isOpen={isInfoModalOpen}
         onClose={() => setIsInfoModalOpen(false)}
       />
 
-      {/* Modal de Imagen */}
+      {/* Modal de imagen */}
       {selectedImage && (
         <ImageModal
           isOpen={!!selectedImage}

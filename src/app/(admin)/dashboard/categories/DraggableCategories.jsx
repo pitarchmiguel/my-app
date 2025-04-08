@@ -17,12 +17,15 @@ import {
 } from '@dnd-kit/sortable';
 import { SortableItem } from './SortableItem';
 import { PencilIcon, TrashIcon, CheckIcon, XMarkIcon, Bars3Icon } from '@heroicons/react/24/outline';
+import DeleteModal from './DeleteModal';
+import EmojiPicker from './EmojiPicker';
 
 export default function DraggableCategories({ categories, onReorder, onEdit, onDelete }) {
   const [items, setItems] = useState([]);
   const [editingCategory, setEditingCategory] = useState(null);
   const [error, setError] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [deleteModalData, setDeleteModalData] = useState({ isOpen: false, category: null });
 
   // Actualizar items cuando cambien las categorías
   useEffect(() => {
@@ -88,18 +91,19 @@ export default function DraggableCategories({ categories, onReorder, onEdit, onD
     }
   };
 
-  const handleDelete = async (id) => {
-    if (isProcessing) return;
-    
-    if (!window.confirm('¿Estás seguro de que quieres eliminar esta categoría? Esta acción no se puede deshacer.')) {
-      return;
-    }
+  const handleDeleteClick = (category) => {
+    setDeleteModalData({ isOpen: true, category });
+  };
 
+  const handleDeleteConfirm = async () => {
+    if (isProcessing || !deleteModalData.category) return;
+    
     setError(null);
     setIsProcessing(true);
     
     try {
-      await onDelete(id);
+      await onDelete(deleteModalData.category.id);
+      setDeleteModalData({ isOpen: false, category: null });
     } catch (error) {
       setError(error.message || 'Error al eliminar la categoría');
     } finally {
@@ -115,6 +119,13 @@ export default function DraggableCategories({ categories, onReorder, onEdit, onD
         </div>
       )}
       
+      <DeleteModal
+        isOpen={deleteModalData.isOpen}
+        onClose={() => setDeleteModalData({ isOpen: false, category: null })}
+        onConfirm={handleDeleteConfirm}
+        categoryName={deleteModalData.category?.name}
+      />
+
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
@@ -130,16 +141,12 @@ export default function DraggableCategories({ categories, onReorder, onEdit, onD
                 {editingCategory?.id === category.id ? (
                   <div className="flex items-center justify-between p-4 bg-white rounded-lg shadow">
                     <div className="flex items-center gap-3 flex-1">
-                      <input
-                        type="text"
-                        value={editingCategory.newEmoji}
-                        onChange={(e) => setEditingCategory({
+                      <EmojiPicker
+                        onEmojiSelect={(emoji) => setEditingCategory({
                           ...editingCategory,
-                          newEmoji: e.target.value
+                          newEmoji: emoji
                         })}
-                        className="w-16 p-2 border rounded focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                        placeholder="Emoji"
-                        autoFocus
+                        buttonClassName="w-16 p-2 border rounded focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-center"
                       />
                       <input
                         type="text"
@@ -194,7 +201,7 @@ export default function DraggableCategories({ categories, onReorder, onEdit, onD
                         <PencilIcon className="w-4 h-4" />
                       </button>
                       <button
-                        onClick={() => handleDelete(category.id)}
+                        onClick={() => handleDeleteClick(category)}
                         disabled={isProcessing}
                         className="p-2 text-white bg-red-500 rounded-full hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50"
                         title="Eliminar categoría"
