@@ -113,7 +113,7 @@ function ImageModal({ isOpen, onClose, imageUrl, productName, product }) {
               leaveFrom="translate-y-0"
               leaveTo="translate-y-full"
             >
-              <Dialog.Panel className="w-full transform overflow-hidden bg-white shadow-xl rounded-t-2xl">
+              <Dialog.Panel className="w-full h-[75vh] transform overflow-hidden bg-white shadow-xl rounded-t-2xl">
                 <div className="relative aspect-[16/9] w-full">
                   <Image
                     src={imageUrl}
