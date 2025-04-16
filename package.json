@@ -25,6 +25,7 @@
     "@prisma/client": "^6.5.0",
     "bcryptjs": "^2.4.3",
     "cloudinary": "^2.6.0",
+    "framer-motion": "^12.7.3",
     "next": "14.2.26",
     "next-auth": "^4.24.5",
     "react": "^18",

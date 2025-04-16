@@ -1,4 +1,5 @@
 import HomePage from '@/components/HomePage';
+import ClientWrapper from '@/components/ClientWrapper';
 import prisma from '@/lib/prisma';
 
 async function getData() {
@@ -57,5 +58,10 @@ export default async function Page() {
     categoriesCount: data.categories?.length || 0,
     productsCount: data.products?.length || 0
   });
-  return <HomePage {...data} />;
+  return (
+    <>
+      <ClientWrapper />
+      <HomePage {...data} />
+    </>
+  );
 }

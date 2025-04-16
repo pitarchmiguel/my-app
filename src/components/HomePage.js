@@ -259,7 +259,7 @@ export default function HomePage({ categories, products, error }) {
           priority
         />
         {/* Logo en esquina superior derecha */}
-        <div className="absolute top-4 right-4 w-16 h-16">
+        <div className="absolute top-4 left-4 w-16 h-16">
           <Image
             src="/images/logo_firestation.svg"
             alt="Logo Fire Station"
