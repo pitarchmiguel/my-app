@@ -1,26 +1,66 @@
-const { PrismaClient } = require('@prisma/client');
+const { PrismaClient, Role } = require('@prisma/client');
 const bcrypt = require('bcryptjs');
 
 const prisma = new PrismaClient();
 
 async function main() {
-  // Crear usuario administrador si no existe
-  const adminEmail = 'admin@example.com';
-  const existingAdmin = await prisma.user.findUnique({
-    where: { email: adminEmail },
-  });
+  // Limpiar la base de datos
+  await prisma.product.deleteMany();
+  await prisma.category.deleteMany();
+  await prisma.user.deleteMany();
 
-  if (!existingAdmin) {
-    const hashedPassword = await bcrypt.hash('admin123', 10);
-    const admin = await prisma.user.create({
+  // Crear usuario administrador
+  const hashedPassword = await bcrypt.hash('Admin123!', 10);
+  const admin = await prisma.user.create({
+    data: {
+      email: 'admin@example.com',
+      password: hashedPassword,
+      role: Role.ADMIN,
+    },
+  });
+  console.log('Usuario administrador creado:', admin);
+
+  // Crear categorías de ejemplo
+  const categories = await Promise.all([
+    prisma.category.create({
       data: {
-        email: adminEmail,
-        password: hashedPassword,
-        role: 'admin',
+        name: 'Entrantes',
+        emoji: '🥗',
+        order: 1,
+        products: {
+          create: [
+            {
+              name: 'Ensalada César',
+              description: 'Lechuga romana, pollo, crutones, parmesano y salsa césar',
+              price: 8.50,
+              imageUrl: '/images/ensalada-cesar.jpg',
+              inStock: true,
+            },
+          ],
+        },
       },
-    });
-    console.log('Usuario administrador creado:', admin);
-  }
+    }),
+    prisma.category.create({
+      data: {
+        name: 'Principales',
+        emoji: '🍝',
+        order: 2,
+        products: {
+          create: [
+            {
+              name: 'Pasta Carbonara',
+              description: 'Pasta con salsa de huevo, panceta y queso parmesano',
+              price: 12.50,
+              imageUrl: '/images/pasta-carbonara.jpg',
+              inStock: true,
+            },
+          ],
+        },
+      },
+    }),
+  ]);
+
+  console.log('Categorías y productos creados:', categories);
 }
 
 main()

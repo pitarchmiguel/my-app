@@ -57,6 +57,12 @@ export default function DashboardLayout({ children }) {
                 >
                   Categorías
                 </Link>
+                <Link
+                  href="/dashboard/time-slots"
+                  className="text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 border-transparent hover:border-gray-300"
+                >
+                  Franjas Horarias
+                </Link>
               </div>
             </div>
 
@@ -107,6 +113,13 @@ export default function DashboardLayout({ children }) {
                 onClick={() => setIsMenuOpen(false)}
               >
                 Categorías
+              </Link>
+              <Link
+                href="/dashboard/time-slots"
+                className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Franjas Horarias
               </Link>
               <div className="border-t border-gray-200 pt-4 pb-3">
                 <div className="px-3">

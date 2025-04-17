@@ -3,26 +3,51 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+interface TimeSlot {
+  id: number;
+  startTime: string;
+  endTime: string;
+  message: string;
+}
+
 const TimeBasedPopup = () => {
   const [isOpen, setIsOpen] = useState(true);
   const [message, setMessage] = useState('');
+  const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const hour = new Date().getHours();
-    let greeting = '';
-
-    if (hour >= 7 && hour < 12) {
-      greeting = '🍞 Cocina abierta para tostadas y desayunos ligeros.';
-    } else if (hour >= 12 && hour < 18) {
-      greeting = '🍽️ Cocina abierta para comidas completas.';
-    } else {
-      greeting = '❌ Cocina cerrada.';
-    }
-
-    setMessage(greeting);
+    fetchTimeSlots();
   }, []);
 
-  if (!isOpen) return null;
+  const fetchTimeSlots = async () => {
+    try {
+      const response = await fetch('/api/time-slots');
+      const data = await response.json();
+      setTimeSlots(data);
+    } catch (error) {
+      console.error('Error fetching time slots:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (timeSlots.length > 0) {
+      const currentTime = new Date();
+      const currentHour = currentTime.getHours();
+      const currentMinutes = currentTime.getMinutes();
+      const currentTimeString = `${currentHour.toString().padStart(2, '0')}:${currentMinutes.toString().padStart(2, '0')}`;
+
+      const activeSlot = timeSlots.find(slot => {
+        return currentTimeString >= slot.startTime && currentTimeString <= slot.endTime;
+      });
+
+      setMessage(activeSlot ? activeSlot.message : '❌ Cocina cerrada.');
+    }
+  }, [timeSlots]);
+
+  if (!isOpen || isLoading) return null;
 
   return (
     <AnimatePresence>

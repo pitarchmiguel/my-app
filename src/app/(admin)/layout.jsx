@@ -19,7 +19,7 @@ export default function AdminLayout({ children }) {
   }
 
   // Verificar si el usuario es administrador
-  if (session?.user?.role !== 'admin') {
+  if (session?.user?.role !== 'ADMIN') {
     redirect('/');
   }
 
