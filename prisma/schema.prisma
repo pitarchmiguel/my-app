@@ -15,6 +15,7 @@ model User {
   image         String?
   password      String?
   role          Role      @default(USER)
+  rememberToken String?
   accounts      Account[]
   sessions      Session[]
   createdAt     DateTime  @default(now())
@@ -87,6 +88,15 @@ model HeroConfig {
   subtitle  String?
   createdAt DateTime @default(now())
   updatedAt DateTime? @updatedAt
+}
+
+model LoginAttempt {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  attempts     Int      @default(0)
+  lastAttempt  DateTime @default(now())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 enum Role {

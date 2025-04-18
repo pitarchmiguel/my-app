@@ -340,56 +340,58 @@ export default function HomePage({ categories, products, error }) {
   };
 
   return (
-    <div className="min-h-screen bg-white">
-      <Hero />
-      
-      <div className="container mx-auto px-4 py-8">
-        {/* Categorías y Productos */}
-        <div className="space-y-6">
-          {isLoading ? (
-            // Skeleton para categorías
-            Array.from({ length: 5 }).map((_, index) => (
-              <div key={index} className="bg-white rounded-lg shadow-sm p-4">
-                <div className="h-6 bg-gray-200 rounded w-1/4 mb-4"></div>
-                <div className="space-y-4">
-                  {Array.from({ length: 3 }).map((_, i) => (
-                    <ProductSkeleton key={i} />
-                  ))}
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <div className="min-h-screen bg-white max-w-md mx-auto border border-gray-200 rounded-lg shadow-lg">
+        <Hero />
+        
+        <div className="px-4 py-8">
+          {/* Categorías y Productos */}
+          <div className="space-y-6">
+            {isLoading ? (
+              // Skeleton para categorías
+              Array.from({ length: 5 }).map((_, index) => (
+                <div key={index} className="bg-white rounded-lg shadow-sm p-4">
+                  <div className="h-6 bg-gray-200 rounded w-1/4 mb-4"></div>
+                  <div className="space-y-4">
+                    {Array.from({ length: 3 }).map((_, i) => (
+                      <ProductSkeleton key={i} />
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))
-          ) : (
-            // Categorías y productos
-            sortedCategories.map((category) => (
-              <CategorySection
-                key={category.id}
-                category={category}
-                isExpanded={expandedCategories.has(category.id)}
-                onToggle={toggleCategory}
-                products={category.products}
-                onProductClick={handleProductClick}
-              />
-            ))
-          )}
+              ))
+            ) : (
+              // Categorías y productos
+              sortedCategories.map((category) => (
+                <CategorySection
+                  key={category.id}
+                  category={category}
+                  isExpanded={expandedCategories.has(category.id)}
+                  onToggle={toggleCategory}
+                  products={category.products}
+                  onProductClick={handleProductClick}
+                />
+              ))
+            )}
+          </div>
         </div>
-      </div>
 
-      {/* Modal de información */}
-      <InfoModal
-        isOpen={isInfoModalOpen}
-        onClose={() => setIsInfoModalOpen(false)}
-      />
-
-      {/* Modal de imagen */}
-      {selectedImage && (
-        <ImageModal
-          isOpen={!!selectedImage}
-          onClose={() => setSelectedImage(null)}
-          imageUrl={selectedImage.imageUrl}
-          productName={selectedImage.name}
-          product={selectedImage}
+        {/* Modal de información */}
+        <InfoModal
+          isOpen={isInfoModalOpen}
+          onClose={() => setIsInfoModalOpen(false)}
         />
-      )}
+
+        {/* Modal de imagen */}
+        {selectedImage && (
+          <ImageModal
+            isOpen={!!selectedImage}
+            onClose={() => setSelectedImage(null)}
+            imageUrl={selectedImage.imageUrl}
+            productName={selectedImage.name}
+            product={selectedImage}
+          />
+        )}
+      </div>
     </div>
   );
 } 
