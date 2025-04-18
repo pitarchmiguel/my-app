@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
 import ProductImage from './ProductImage';
+import Hero from './Hero';
 
 // Componente Modal de Información
 function InfoModal({ isOpen, onClose }) {
@@ -248,36 +249,8 @@ export default function HomePage({ categories, products, error }) {
 
   return (
     <main className="min-h-screen">
-      {/* Hero Section con imagen de fondo */}
-      <section className="relative h-[30vh] bg-black">
-        <Image
-          src="/images/hero_firestation.jpg"
-          alt="Interior del restaurante"
-          fill
-          sizes="100vw"
-          className="object-cover opacity-80"
-          priority
-        />
-        {/* Logo en esquina superior derecha */}
-        <div className="absolute top-4 left-4 w-16 h-16">
-          <Image
-            src="/images/logo_firestation.svg"
-            alt="Logo Fire Station"
-            width={64}
-            height={64}
-            className="w-full h-full object-contain"
-          />
-        </div>
-        {/* Botón de información */}
-        <button
-          onClick={handleInfoClick}
-          className="absolute bottom-4 right-4 bg-white/10 backdrop-blur-sm rounded-full p-3 hover:bg-white/20 transition-colors"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6 text-white">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
-          </svg>
-        </button>
-      </section>
+      {/* Hero Section */}
+      <Hero />
 
       {/* Categorías y sus productos */}
       <section className="max-w-4xl mx-auto px-4 py-8">

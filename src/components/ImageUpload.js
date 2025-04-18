@@ -4,37 +4,40 @@ import { useState } from 'react';
 import Image from 'next/image';
 
 export default function ImageUpload({ value, onChange }) {
-  const [isUploading, setIsUploading] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState(null);
 
-  const handleImageUpload = async (e) => {
+  const handleUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    setIsUploading(true);
+    setUploading(true);
+    setError(null);
 
     try {
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('upload_preset', 'menu_images');
 
-      const response = await fetch(
-        `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
-        {
-          method: 'POST',
-          body: formData,
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error('Error al subir la imagen');
-      }
+      console.log('Iniciando subida de imagen...');
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      });
 
       const data = await response.json();
-      onChange(data.secure_url);
+      console.log('Respuesta del servidor:', data);
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al subir la imagen');
+      }
+
+      console.log('Subida exitosa:', data);
+      onChange(data.url);
     } catch (error) {
-      console.error('Error al subir la imagen:', error);
+      console.error('Error detallado al subir la imagen:', error);
+      setError(error.message);
     } finally {
-      setIsUploading(false);
+      setUploading(false);
     }
   };
 
@@ -55,7 +58,7 @@ export default function ImageUpload({ value, onChange }) {
         <label
           htmlFor="hero-image"
           className={`flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 ${
-            isUploading ? 'opacity-50 cursor-not-allowed' : ''
+            uploading ? 'opacity-50 cursor-not-allowed' : ''
           }`}
         >
           <div className="flex flex-col items-center justify-center pt-5 pb-6">
@@ -87,11 +90,21 @@ export default function ImageUpload({ value, onChange }) {
             type="file"
             className="hidden"
             accept="image/*"
-            onChange={handleImageUpload}
-            disabled={isUploading}
+            onChange={handleUpload}
+            disabled={uploading}
           />
         </label>
       </div>
+      {error && (
+        <p className="mt-2 text-sm text-red-500">
+          {error}
+        </p>
+      )}
+      {uploading && (
+        <p className="mt-2 text-sm text-indigo-600">
+          Subiendo imagen...
+        </p>
+      )}
     </div>
   );
 } 

@@ -1,5 +1,12 @@
 import { NextResponse } from 'next/server';
-import { uploadToCloudinary } from '@/lib/cloudinary';
+import { v2 as cloudinary } from 'cloudinary';
+
+// Configurar Cloudinary
+cloudinary.config({
+  cloud_name: 'dnv7jmjt1',
+  api_key: '721518481576849',
+  api_secret: '7E72Z_iWF5SWDqWvk68SdyGIi2Q'
+});
 
 export const dynamic = 'force-dynamic';
 
@@ -49,20 +56,26 @@ export async function POST(request) {
       );
     }
 
-    console.log('Iniciando subida a Cloudinary');
-    const imageUrl = await uploadToCloudinary(file);
-    console.log('Imagen subida exitosamente:', imageUrl);
+    // Convertir el archivo a base64
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+    const base64File = `data:${file.type};base64,${buffer.toString('base64')}`;
 
-    return NextResponse.json({ url: imageUrl });
-  } catch (error) {
-    console.error('Error detallado en el endpoint de subida:', {
-      message: error.message,
-      name: error.name,
-      stack: error.stack
+    console.log('Iniciando subida a Cloudinary');
+    const result = await cloudinary.uploader.upload(base64File, {
+      folder: 'carta',
+      resource_type: 'auto',
+      transformation: [
+        { quality: 'auto:good' }
+      ]
     });
-    
+    console.log('Imagen subida exitosamente:', result.secure_url);
+
+    return NextResponse.json({ url: result.secure_url });
+  } catch (error) {
+    console.error('Error al subir imagen:', error);
     return NextResponse.json(
-      { error: `Error al procesar la subida: ${error.message}` },
+      { error: 'Error al procesar la imagen' },
       { status: 500 }
     );
   }
