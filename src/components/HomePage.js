@@ -1,14 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import Image from 'next/image';
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
 import ProductImage from './ProductImage';
 import Hero from './Hero';
+import ProductSkeleton from './ProductSkeleton';
+import VirtualizedProductList from './VirtualizedProductList';
 
 // Componente Modal de Información
-function InfoModal({ isOpen, onClose }) {
+const InfoModal = memo(({ isOpen, onClose }) => {
   const handleContactClick = (type) => {
     if (typeof window !== 'undefined' && window.gtag) {
       window.gtag('event', 'contact_click', {
@@ -96,10 +98,10 @@ function InfoModal({ isOpen, onClose }) {
       </div>
     </Dialog>
   );
-}
+});
 
 // Componente Modal de Imagen
-function ImageModal({ isOpen, onClose, imageUrl, productName, product }) {
+const ImageModal = memo(({ isOpen, onClose, imageUrl, productName, product }) => {
   return (
     <Transition show={isOpen} as={Fragment}>
       <Dialog onClose={onClose} className="relative z-50">
@@ -166,12 +168,84 @@ function ImageModal({ isOpen, onClose, imageUrl, productName, product }) {
       </Dialog>
     </Transition>
   );
-}
+});
+
+// Componente de Categoría
+const CategorySection = memo(({ 
+  category, 
+  isExpanded, 
+  onToggle, 
+  products, 
+  onProductClick 
+}) => {
+  return (
+    <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+      <button
+        onClick={() => onToggle(category.id)}
+        className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
+      >
+        <h2 className="text-xl font-bold">{category.name}</h2>
+        <span className="text-2xl">{category.emoji}</span>
+      </button>
+
+      <Transition
+        show={isExpanded}
+        enter="transition duration-100 ease-out"
+        enterFrom="transform scale-95 opacity-0"
+        enterTo="transform scale-100 opacity-100"
+        leave="transition duration-75 ease-out"
+        leaveFrom="transform scale-100 opacity-100"
+        leaveTo="transform scale-95 opacity-0"
+      >
+        <div className="px-0 pb-4">
+          {products.length > 0 ? (
+            <VirtualizedProductList
+              products={products}
+              handleProductClick={onProductClick}
+            />
+          ) : (
+            <div className="text-center py-4 text-gray-500">
+              No hay productos disponibles en esta categoría
+            </div>
+          )}
+        </div>
+      </Transition>
+    </div>
+  );
+});
+
+CategorySection.displayName = 'CategorySection';
 
 export default function HomePage({ categories, products, error }) {
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [expandedCategories, setExpandedCategories] = useState(new Set());
+
+  // Asegurarse de que products es un array
+  const safeProducts = Array.isArray(products) ? products : [];
+
+  // Logs de depuración detallados
+  useEffect(() => {
+    console.log('Categorías recibidas:', categories);
+    console.log('Detalles de cada categoría:', 
+      categories?.map(cat => ({
+        id: cat.id,
+        name: cat.name,
+        emoji: cat.emoji,
+        productsCount: cat.products?.length || 0
+      }))
+    );
+    console.log('Productos recibidos:', safeProducts);
+  }, [categories, safeProducts]);
+
+  // Simular carga inicial
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Tracking de vista de página
   useEffect(() => {
@@ -190,37 +264,27 @@ export default function HomePage({ categories, products, error }) {
     }
   }, [error]);
 
-  // Verificación más detallada de los datos
-  useEffect(() => {
-    console.log('Categorías recibidas:', categories);
-    console.log('Productos recibidos:', products);
-  }, [categories, products]);
-
-  if (!categories || !Array.isArray(categories) || categories.length === 0) {
+  if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-semibold mb-4">
-            {error ? 'Error al cargar las categorías' : 'Cargando categorías...'}
-          </h2>
-          {error && <p className="text-red-500">{error}</p>}
+          <h2 className="text-2xl font-semibold mb-4">Error al cargar los datos</h2>
+          <p className="text-gray-600">{error}</p>
         </div>
       </div>
     );
   }
 
-  // Asegurarse de que products es un array
-  const safeProducts = Array.isArray(products) ? products : [];
-
-  const handleCategoryClick = (category) => {
-    if (typeof window !== 'undefined' && window.gtag) {
-      window.gtag('event', 'view_category', {
-        'category_id': category.id,
-        'category_name': category.name
-      });
-    }
-    setSelectedCategory(selectedCategory === category.id ? null : category.id);
-  };
+  if (!isLoading && (!categories || categories.length === 0)) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-semibold mb-4">No hay categorías disponibles</h2>
+          <p className="text-gray-600">Por favor, inténtalo de nuevo más tarde.</p>
+        </div>
+      </div>
+    );
+  }
 
   const handleProductClick = (product) => {
     if (typeof window !== 'undefined' && window.gtag) {
@@ -247,78 +311,68 @@ export default function HomePage({ categories, products, error }) {
     setIsInfoModalOpen(true);
   };
 
+  // Agrupar productos por categoría
+  const productsByCategory = categories.reduce((acc, category) => {
+    const categoryProducts = safeProducts.filter(
+      product => product.category && product.category.id === category.id
+    );
+    
+    acc[category.id] = {
+      ...category,
+      products: categoryProducts
+    };
+    return acc;
+  }, {});
+
+  // Ordenar categorías por el campo 'order'
+  const sortedCategories = Object.values(productsByCategory).sort((a, b) => a.order - b.order);
+
+  const toggleCategory = (categoryId) => {
+    setExpandedCategories(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(categoryId)) {
+        newSet.delete(categoryId);
+      } else {
+        newSet.add(categoryId);
+      }
+      return newSet;
+    });
+  };
+
   return (
-    <main className="min-h-screen">
-      {/* Hero Section */}
+    <div className="min-h-screen bg-white">
       <Hero />
-
-      {/* Categorías y sus productos */}
-      <section className="max-w-4xl mx-auto px-4 py-8">
-        <div className="space-y-4">
-          {categories.map((category) => {
-            const categoryProducts = safeProducts.filter(
-              product => product.category && product.category.id === category.id
-            );
-            const isSelected = selectedCategory === category.id;
-
-            return (
-              <div key={category.id} className="space-y-4">
-                <button
-                  onClick={() => handleCategoryClick(category)}
-                  className={`w-full text-left p-3 rounded-lg border-2 transition-all ${
-                    isSelected
-                      ? 'border-gray-900 bg-gray-50'
-                      : 'border-gray-200 hover:border-gray-400'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-lg uppercase font-bold">{category.name}</span>
-                    <span className="text-2xl">{category.emoji}</span>
-                  </div>
-                </button>
-
-                {/* Productos de la categoría */}
-                {isSelected && (
-                  <div className="space-y-4">
-                    {categoryProducts.length > 0 ? (
-                      categoryProducts.map((product) => (
-                        <div
-                          key={product.id}
-                          className="flex items-center justify-between space-x-4 bg-white p-4 rounded-lg shadow-sm"
-                        >
-                          <div className="flex-grow">
-                            <h3 className="text-lg font-semibold">{product.name}</h3>
-                            <p className="text-sm text-gray-600 mb-2">{product.description}</p>
-                            <div className="flex items-center justify-between">
-                              <span className={`text-lg font-bold ${product.price === 0 ? 'italic text-gray-600' : ''}`}>
-                                {product.price === 0 ? 'Consultar precio' : `${product.price.toFixed(2)} €`}
-                              </span>
-                            </div>
-                          </div>
-                          <button
-                            onClick={() => handleProductClick(product)}
-                            className="relative w-20 h-20 flex-shrink-0 overflow-hidden rounded-md transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-                          >
-                            <ProductImage
-                              imageUrl={product.imageUrl}
-                              productName={product.name}
-                              className="h-full w-full"
-                            />
-                          </button>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="pl-4 py-4 text-gray-500 italic">
-                        No hay productos disponibles en esta categoría
-                      </div>
-                    )}
-                  </div>
-                )}
+      
+      <div className="container mx-auto px-4 py-8">
+        {/* Categorías y Productos */}
+        <div className="space-y-6">
+          {isLoading ? (
+            // Skeleton para categorías
+            Array.from({ length: 5 }).map((_, index) => (
+              <div key={index} className="bg-white rounded-lg shadow-sm p-4">
+                <div className="h-6 bg-gray-200 rounded w-1/4 mb-4"></div>
+                <div className="space-y-4">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <ProductSkeleton key={i} />
+                  ))}
+                </div>
               </div>
-            );
-          })}
+            ))
+          ) : (
+            // Categorías y productos
+            sortedCategories.map((category) => (
+              <CategorySection
+                key={category.id}
+                category={category}
+                isExpanded={expandedCategories.has(category.id)}
+                onToggle={toggleCategory}
+                products={category.products}
+                onProductClick={handleProductClick}
+              />
+            ))
+          )}
         </div>
-      </section>
+      </div>
 
       {/* Modal de información */}
       <InfoModal
@@ -336,6 +390,6 @@ export default function HomePage({ categories, products, error }) {
           product={selectedImage}
         />
       )}
-    </main>
+    </div>
   );
 } 
