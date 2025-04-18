@@ -17,7 +17,7 @@ export default function EmojiPicker({ onEmojiSelect, buttonClassName }) {
         onClick={() => setShowPicker(!showPicker)}
         className={buttonClassName}
       >
-        😊 Elegir emoji
+        😊
       </button>
       
       {showPicker && (

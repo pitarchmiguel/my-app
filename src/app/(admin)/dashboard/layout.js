@@ -5,11 +5,12 @@ import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function DashboardLayout({ children }) {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showSignOut, setShowSignOut] = useState(false);
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -35,121 +36,92 @@ export default function DashboardLayout({ children }) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <nav className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex">
-              <div className="flex-shrink-0 flex items-center">
-                <h1 className="text-xl font-bold">Panel de Administración</h1>
-              </div>
-              {/* Menú de escritorio */}
-              <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-                <Link
-                  href="/dashboard/products"
-                  className="text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 border-transparent hover:border-gray-300"
-                >
-                  Productos
-                </Link>
-                <Link
-                  href="/dashboard/categories"
-                  className="text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 border-transparent hover:border-gray-300"
-                >
-                  Categorías
-                </Link>
-                <Link
-                  href="/dashboard/time-slots"
-                  className="text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 border-transparent hover:border-gray-300"
-                >
-                  Franjas Horarias
-                </Link>
-              </div>
-            </div>
-
-            {/* Botones de la derecha */}
-            <div className="flex items-center">
-              <span className="hidden sm:block text-gray-600 mr-4">{session.user.email}</span>
-              <button
-                onClick={handleSignOut}
-                className="hidden sm:inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700"
-              >
-                Cerrar Sesión
-              </button>
-
-              {/* Botón de menú móvil */}
-              <div className="sm:hidden">
+    <div className="min-h-screen flex flex-col bg-gray-50">
+      {/* Header */}
+      <header className="bg-white shadow-sm p-4 fixed top-0 left-0 right-0 z-50">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          <div className="flex items-center">
+            <Image
+              src="/images/logo_firestation.svg"
+              alt="Logo Fire Station"
+              width={40}
+              height={40}
+              className="rounded-lg"
+              style={{ width: '40px', height: '40px', objectFit: 'contain' }}
+            />
+          </div>
+          
+          <div className="relative">
+            <button
+              onClick={() => setShowSignOut(!showSignOut)}
+              className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+            </button>
+            
+            {showSignOut && (
+              <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
                 <button
-                  onClick={() => setIsMenuOpen(!isMenuOpen)}
-                  className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500"
+                  onClick={handleSignOut}
+                  className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
                 >
-                  <span className="sr-only">Abrir menú principal</span>
-                  {!isMenuOpen ? (
-                    <svg className="block h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-                    </svg>
-                  ) : (
-                    <svg className="block h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  )}
+                  Cerrar Sesión
                 </button>
               </div>
-            </div>
+            )}
           </div>
+        </div>
+      </header>
 
-          {/* Menú móvil */}
-          <div className={`${isMenuOpen ? 'block' : 'hidden'} sm:hidden`}>
-            <div className="pt-2 pb-3 space-y-1">
-              <Link
-                href="/dashboard/products"
-                className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Productos
-              </Link>
-              <Link
-                href="/dashboard/categories"
-                className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Categorías
-              </Link>
-              <Link
-                href="/dashboard/time-slots"
-                className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Franjas Horarias
-              </Link>
-              <div className="border-t border-gray-200 pt-4 pb-3">
-                <div className="px-3">
-                  <p className="text-sm font-medium text-gray-500">Conectado como:</p>
-                  <p className="text-sm font-medium text-gray-900 truncate">{session.user.email}</p>
-                </div>
-                <div className="mt-3">
-                  <button
-                    onClick={() => {
-                      setIsMenuOpen(false);
-                      handleSignOut();
-                    }}
-                    className="block w-full px-3 py-2 rounded-md text-base font-medium text-red-700 hover:text-red-900 hover:bg-gray-50"
-                  >
-                    Cerrar Sesión
-                  </button>
-                </div>
-              </div>
-            </div>
+      {/* Padding top to account for fixed header */}
+      <div className="h-16"></div>
+
+      {/* Main Content */}
+      <main className="flex-1 overflow-auto">
+        <div className="max-w-7xl mx-auto p-4">
+          {children}
+        </div>
+      </main>
+
+      {/* Bottom Navigation */}
+      <nav className="bg-white border-t fixed bottom-0 w-full">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex justify-around py-3">
+            <Link href="/dashboard/categories" className="flex flex-col items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+              <span className="text-xs mt-1">Categorías</span>
+            </Link>
+            
+            <Link href="/dashboard/products" className="flex flex-col items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              <span className="text-xs mt-1">Productos</span>
+            </Link>
+
+            <Link href="/dashboard/time-slots" className="flex flex-col items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span className="text-xs mt-1">Horario</span>
+            </Link>
+
+            <Link href="/dashboard/hero" className="flex flex-col items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              <span className="text-xs mt-1">Hero</span>
+            </Link>
           </div>
         </div>
       </nav>
 
-      <div className="py-10">
-        <main>
-          <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            {children}
-          </div>
-        </main>
-      </div>
+      {/* Padding bottom to account for fixed navigation */}
+      <div className="h-20"></div>
     </div>
   );
 } 

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { uploadImage } from '@/utils/cloudinary';
+import { uploadToCloudinary } from '@/lib/cloudinary';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,25 +12,15 @@ export const maxDuration = 60;
 
 export async function POST(request) {
   try {
-    console.log('Recibida solicitud de subida de imagen');
+    console.log('Iniciando proceso de subida de imagen');
     
-    // Verificar el tamaño de la solicitud
-    const contentLength = request.headers.get('content-length');
-    if (contentLength && parseInt(contentLength) > MAX_FILE_SIZE) {
-      console.error('Solicitud demasiado grande:', contentLength);
-      return NextResponse.json(
-        { error: 'El archivo no puede ser mayor a 10MB' },
-        { status: 413 }
-      );
-    }
-
     const formData = await request.formData();
     const file = formData.get('file');
 
     if (!file) {
       console.error('No se encontró archivo en la solicitud');
       return NextResponse.json(
-        { error: 'No se proporcionó ningún archivo' },
+        { error: 'No se ha proporcionado ningún archivo' },
         { status: 400 }
       );
     }
@@ -59,8 +49,8 @@ export async function POST(request) {
       );
     }
 
-    console.log('Iniciando proceso de subida a Cloudinary');
-    const imageUrl = await uploadImage(file);
+    console.log('Iniciando subida a Cloudinary');
+    const imageUrl = await uploadToCloudinary(file);
     console.log('Imagen subida exitosamente:', imageUrl);
 
     return NextResponse.json({ url: imageUrl });
@@ -70,6 +60,7 @@ export async function POST(request) {
       name: error.name,
       stack: error.stack
     });
+    
     return NextResponse.json(
       { error: `Error al procesar la subida: ${error.message}` },
       { status: 500 }
