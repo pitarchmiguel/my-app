@@ -1,22 +1,16 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import ReCAPTCHA from 'react-google-recaptcha';
 
 export default function LoginPage() {
   const [error, setError] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [showCaptcha, setShowCaptcha] = useState(false);
-  const [loginAttempts, setLoginAttempts] = useState(0);
-  const [isLocked, setIsLocked] = useState(false);
-  const [lockoutTime, setLockoutTime] = useState(0);
-  const captchaRef = useRef(null);
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -35,37 +29,6 @@ export default function LoginPage() {
     }
     setFormErrors(errors);
   }, [formData]);
-
-  // Verificar si el usuario está bloqueado
-  useEffect(() => {
-    const checkLockout = async () => {
-      try {
-        const response = await fetch('/api/auth/verify-captcha', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            email: formData.email,
-            captchaToken: ''
-          }),
-        });
-
-        const data = await response.json();
-        
-        if (response.status === 429) {
-          setIsLocked(true);
-          setLockoutTime(parseInt(data.error.match(/\d+/)[0]));
-        }
-      } catch (error) {
-        console.error('Error al verificar bloqueo:', error);
-      }
-    };
-
-    if (formData.email) {
-      checkLockout();
-    }
-  }, [formData.email]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -88,39 +51,6 @@ export default function LoginPage() {
     }
 
     try {
-      // Verificar si se requiere CAPTCHA
-      const captchaResponse = await fetch('/api/auth/verify-captcha', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: formData.email,
-          captchaToken: showCaptcha ? captchaRef.current?.getValue() : ''
-        }),
-      });
-
-      if (captchaResponse.status === 403) {
-        setShowCaptcha(true);
-        setError('Se requiere verificación CAPTCHA');
-        setIsLoading(false);
-        return;
-      }
-
-      if (captchaResponse.status === 429) {
-        const data = await captchaResponse.json();
-        setIsLocked(true);
-        setLockoutTime(parseInt(data.error.match(/\d+/)[0]));
-        setError(data.error);
-        setIsLoading(false);
-        return;
-      }
-
-      if (!captchaResponse.ok) {
-        const data = await captchaResponse.json();
-        throw new Error(data.error);
-      }
-
       const result = await signIn('credentials', {
         email: formData.email,
         password: formData.password,
@@ -128,7 +58,6 @@ export default function LoginPage() {
       });
 
       if (result.error) {
-        setLoginAttempts(prev => prev + 1);
         setError('Credenciales inválidas');
       } else {
         // Si el login es exitoso y "Recuérdame" está marcado
@@ -152,28 +81,6 @@ export default function LoginPage() {
       setIsLoading(false);
     }
   };
-
-  if (isLocked) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 py-12 px-4 sm:px-6 lg:px-8">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-lg"
-        >
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              Cuenta temporalmente bloqueada
-            </h2>
-            <p className="text-gray-600">
-              Demasiados intentos fallidos. Por favor, espera {lockoutTime} minutos antes de intentar nuevamente.
-            </p>
-          </div>
-        </motion.div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 py-12 px-4 sm:px-6 lg:px-8">
@@ -262,16 +169,6 @@ export default function LoginPage() {
               )}
             </div>
           </div>
-
-          {showCaptcha && (
-            <div className="flex justify-center">
-              <ReCAPTCHA
-                ref={captchaRef}
-                sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY}
-                onChange={() => setError('')}
-              />
-            </div>
-          )}
 
           <div className="flex items-center justify-between">
             <div className="flex items-center">
