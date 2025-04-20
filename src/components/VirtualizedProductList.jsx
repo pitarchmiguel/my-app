@@ -44,7 +44,7 @@ export default function VirtualizedProductList({ products, handleProductClick })
 
   return (
     <List
-      height={Math.min(products.length * itemSize, 600)} // Altura máxima de 600px
+      height={products.length * itemSize} // Permitir que la lista se expanda completamente
       itemCount={products.length}
       itemSize={itemSize}
       width="100%"
