@@ -1,14 +1,9 @@
-import { FixedSizeList as List } from 'react-window';
 import { memo } from 'react';
 import ProductImage from './ProductImage';
 
-const ProductRow = memo(({ data, index, style }) => {
-  const product = data.products[index];
-  const handleProductClick = data.handleProductClick;
-
+const ProductRow = memo(({ product, handleProductClick, style }) => {
   return (
     <div
-      style={style}
       className="flex items-center justify-between space-x-4 bg-gray-50 p-4 hover:bg-gray-100 transition-colors"
     >
       <div className="flex-grow">
@@ -40,17 +35,15 @@ const ProductRow = memo(({ data, index, style }) => {
 ProductRow.displayName = 'ProductRow';
 
 export default function VirtualizedProductList({ products, handleProductClick }) {
-  const itemSize = 120; // Altura estimada de cada producto
-
   return (
-    <List
-      height={products.length * itemSize} // Permitir que la lista se expanda completamente
-      itemCount={products.length}
-      itemSize={itemSize}
-      width="100%"
-      itemData={{ products, handleProductClick }}
-    >
-      {ProductRow}
-    </List>
+    <div>
+      {products.map((product, index) => (
+        <ProductRow
+          key={product.id || index}
+          product={product}
+          handleProductClick={handleProductClick}
+        />
+      ))}
+    </div>
   );
 } 
